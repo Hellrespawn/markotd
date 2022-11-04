@@ -10,18 +10,12 @@
 
 . ./common.sh
 
-FILES="$HOME/.markotd-links ./markotd-links.test"
+FILENAME="markotd-links"
+FILES="$HOME/.$FILENAME"
 
-get_file() {
-    for filename in $FILES; do
-        if [ -f "$filename" ]; then
-            echo "$filename"
-            return 0
-        fi
-    done
-
-    return 1
-}
+if [ -n "$DEBUG" ]; then
+    FILES="$FILES ./$FILENAME.test"
+fi
 
 # Reads lines from stdin and prints the length of the longest line.
 get_longest() {
@@ -33,7 +27,7 @@ get_longest() {
         fi
     done
 
-    echo "$max_length"
+    printf "%s ""$max_length"
 }
 
 # Prints a name and an URL like a Markdown link.
@@ -46,16 +40,17 @@ print_url() {
     printf " * %${3:-0}s](%s)\n" "$name" "$2"
 }
 
-if FILE=$(get_file); then
-    lines=$(read_lines < "$FILE")
+if file=$(get_file "$FILES"); then
+    printf "## Useful Links\n\n"
+
+    lines=$(read_lines < "$file")
 
     max_width=$(echo "$lines" | cut -d : -f 1 | get_longest)
     max_width=$((max_width + 1))
-
 
     echo "$lines" | while IFS=: read -r name link; do
         print_url "$name" "$link" "$max_width"
     done
 
-    echo
+    printf "\n"
 fi

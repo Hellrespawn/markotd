@@ -55,4 +55,6 @@ printf "%s\n$%s\n" "$headings" "$lines" | {
     print_table_separator
 
     echo "$lines" | print_table_rows
+
+    printf "\n"
 }

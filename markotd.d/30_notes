@@ -1,0 +1,20 @@
+#!/bin/sh
+
+. ./common.sh
+
+TERMINAL_WIDTH=$(tput cols)
+if [ "${TERMINAL_WIDTH:-80}" -gt 80 ]; then
+    TERMINAL_WIDTH=80
+fi
+
+FILENAME="markotd-notes"
+FILES="$HOME/.$FILENAME"
+
+if [ -n "$DEBUG" ]; then
+    FILES="$FILES ./$FILENAME.test"
+fi
+
+if file=$(get_file "$FILES"); then
+    printf "## Notes\n\n"
+    fold -w "${TERMINAL_WIDTH}" -s "$file"
+fi

@@ -1,16 +1,22 @@
 #!/bin/sh
 
-PARTS_FOLDER="./markotd.d"
+. ./common.sh
 
-CWD=$(pwd);
+DIRS="/etc/$PARTS_FOLDER $HOME/.$PARTS_FOLDER"
 
-cd "$(dirname "$0")" || exit 1
+if [ -n "$DEBUG" ]; then
+    DIRS="$DIRS ./$PARTS_FOLDER"
+fi
 
-trap 'cd "$CWD" || exit 1 ' EXIT
+if dir=$(get_dir "$DIRS"); then
+    for file in "$dir"/*
+    do
+        eval "$file"
+    done
 
-for file in "$PARTS_FOLDER"/*
-do
-    eval "$file"
-done
+    exit 0
+else
+    printf "Unable to find '%s'\n" "$HOME/.$PARTS_FOLDER"
+    exit 1
+fi
 
-exit 0
