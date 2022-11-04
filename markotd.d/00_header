@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# Prints welcome, including
+#
+# * hostname
+# * username
+# * distro
+
+distribution="$(lsb_release -ds 2> /dev/null)"
+hostname="$(hostname)"
+user="$USER"
+
+printf "# "
+
+if [ -n "$distribution" ]; then
+    printf "%s on %s" "$distribution" "$hostname"
+else
+    printf "%s" "$hostname"
+fi
+
+printf "\n\nThe current user is %s.\n\n" "$user"
