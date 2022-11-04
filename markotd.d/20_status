@@ -13,7 +13,7 @@ print_table_rows() {
         printf " %${used_w}.${used_w}s |" "$used"
         printf " %${avail_w}.${avail_w}s |" "$avail"
         printf " %${use_pct_w}.${use_pct_w}s |" "$use_pct"
-        printf " %${mount_w}.${mount_w}s |" "$mount"
+        printf " %-${mount_w}.${mount_w}s |" "$mount"
         printf "\n"
     done
 }

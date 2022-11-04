@@ -38,7 +38,7 @@ PARTS_FOLDER="markotd.d"
 DIRS="$HOME/.$PARTS_FOLDER"
 
 if [ -n "$DEBUG" ]; then
-    DIRS="$DIRS ./$PARTS_FOLDER"
+    DIRS="./$PARTS_FOLDER $DIRS"
 fi
 
 if dir=$(get_dir "$DIRS"); then
