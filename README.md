@@ -4,9 +4,9 @@ A Markdown-inspired MOTD.
 
 ## TODO
 
+- TODO? "Syntax Highlighting"?
 - TODO? Update checker?
 - TODO? System load?
-- TODO? Memory/swap usage?
 - TODO? Print once per day?
 
 ## MOTD Inspiration

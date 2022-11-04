@@ -37,20 +37,26 @@ PARTS_FOLDER="markotd.d"
 
 DIRS="$HOME/.$PARTS_FOLDER"
 
-if [ -n "$DEBUG" ]; then
-    DIRS="./$PARTS_FOLDER $DIRS"
-fi
+EMPH=$(tput setaf 6)
+RESET=$(tput sgr0)
 
-if dir=$(get_dir "$DIRS"); then
-    for file in "$dir"/*
-    do
-        # shellcheck source=/dev/null
-        . "$file"
-    done
+OUTPUT=$(
+    if [ -n "$DEBUG" ]; then
+        DIRS="./$PARTS_FOLDER $DIRS"
+    fi
 
-    exit 0
-else
-    printf "Unable to find '%s'\n" "$HOME/.$PARTS_FOLDER"
-    exit 1
-fi
+    if dir=$(get_dir "$DIRS"); then
+        for file in "$dir"/*
+        do
+            # shellcheck source=/dev/null
+            . "$file"
+        done
+
+    else
+        printf "Unable to find '%s'\n" "$HOME/.$PARTS_FOLDER"
+        exit 1
+    fi
+)
+
+echo "$OUTPUT"
 

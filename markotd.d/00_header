@@ -7,15 +7,15 @@
 # * distro
 
 distribution="$(lsb_release -ds 2> /dev/null)"
-hostname="$(hostname)"
-user="$USER"
 
-printf "# "
+printf "%s# " "$EMPH"
 
 if [ -n "$distribution" ]; then
-    printf "%s on %s" "$distribution" "$hostname"
+    # shellcheck disable=SC3028
+    printf "%s on %s" "$distribution" "$(hostname)"
 else
-    printf "%s" "$hostname"
+    # shellcheck disable=SC3028
+    printf "%s" "$(hostname)"
 fi
 
-printf "\n\nThe current user is %s.\n" "$user"
+printf "%s\n\nThe current user is %s.\n" "$RESET" "$USER"

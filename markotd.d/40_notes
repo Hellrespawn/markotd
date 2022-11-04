@@ -13,6 +13,6 @@ if [ -n "$DEBUG" ]; then
 fi
 
 if file=$(get_file "$FILES"); then
-    printf "\n## Notes\n\n"
+    printf "\n%s## Notes%s\n\n" "$EMPH" "$RESET"
     fold -w "${TERMINAL_WIDTH}" -s "$file"
 fi

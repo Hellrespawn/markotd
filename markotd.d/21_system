@@ -1,0 +1,3 @@
+#!/bin/sh
+
+printf "%s is %s, since %s" "$(hostname)" "$(uptime -p)" "$(uptime -s).\n"

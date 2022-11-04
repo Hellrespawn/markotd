@@ -39,7 +39,7 @@ print_url() {
 }
 
 if file=$(get_file "$FILES"); then
-    printf "\n## Useful Links\n\n"
+    printf "\n%s## Useful Links%s\n\n" "$EMPH" "$RESET"
 
     lines=$(read_lines < "$file")
 

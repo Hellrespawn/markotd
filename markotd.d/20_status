@@ -3,54 +3,8 @@
 # Prints current system status, including:
 #
 # * time
-# * drive usage
-
-print_table_rows() {
-    while read -r fs size used avail use_pct mount; do
-        printf "|"
-        printf " %${fs_w}.${fs_w}s |" "$fs"
-        printf " %${size_w}.${size_w}s |" "$size"
-        printf " %${used_w}.${used_w}s |" "$used"
-        printf " %${avail_w}.${avail_w}s |" "$avail"
-        printf " %${use_pct_w}.${use_pct_w}s |" "$use_pct"
-        printf " %-${mount_w}.${mount_w}s |" "$mount"
-        printf "\n"
-    done
-}
-
-print_table_separator() {
-    s=$(printf %80s " " | tr " " "-")
-    echo "$s $s $s $s $s $s" | print_table_rows
-}
+# * drive usage (21_drive_usage)
 
 datetime=$(date)
 
-printf "\n## System status at %s\n\n" "$datetime":
-
-headings="filesystem size used avail pct mount"
-lines=$(df -h | sed 1d | awk '/^([[:alpha:]]:|\/dev)/{ print $0 }' | read_lines)
-
-# Pipe into subshell. Changes to *_w vars are available in that subshell.
-printf "%s\n$%s\n" "$headings" "$lines" | {
-    fs_w=0
-    size_w=0
-    used_w=0
-    avail_w=0
-    use_pct_w=0
-    mount_w=0
-
-    while read -r fs size used avail use_pct mount; do
-        [ "${#fs}" -gt "$fs_w" ] && fs_w=${#fs}
-        [ "${#size}" -gt "$size_w" ] && size_w=${#size}
-        [ "${#used}" -gt "$used_w" ] && used_w=${#used}
-        [ "${#avail}" -gt "$avail_w" ] && avail_w=${#avail}
-        [ "${#use_pct}" -gt "$use_pct_w" ] && use_pct_w=${#use_pct}
-        [ "${#mount}" -gt "$mount_w" ] && mount_w=${#mount}
-    done
-
-    echo "$headings" | print_table_rows
-
-    print_table_separator
-
-    echo "$lines" | print_table_rows
-}
+printf "\n%s## System status at %s%s\n\n" "$EMPH" "$datetime" "$RESET"
