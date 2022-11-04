@@ -1,6 +1,7 @@
 #!/bin/sh
 
-. ./common.sh
+PROGRAM="markotd"
+PARTS_FOLDER="markotd.d"
 
 rm "$HOME/.bin/$PROGRAM"
 rmdir -p "$HOME/.bin"

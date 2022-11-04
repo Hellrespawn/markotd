@@ -1,6 +1,7 @@
 #!/bin/sh
 
-. ./common.sh
+PROGRAM="markotd"
+PARTS_FOLDER="markotd.d"
 
 mkdir -p "$HOME/.bin"
 cp -p markotd.sh "$HOME/.bin/$PROGRAM"

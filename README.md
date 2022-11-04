@@ -2,6 +2,13 @@
 
 A Markdown-inspired MOTD.
 
+## TODO
+
+- TODO? Update checker?
+- TODO? System load?
+- TODO? Memory/swap usage?
+- TODO? Print once per day?
+
 ## MOTD Inspiration
 
 ```_

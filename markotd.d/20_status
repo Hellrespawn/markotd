@@ -5,8 +5,6 @@
 # * time
 # * drive usage
 
-. ./common.sh
-
 print_table_rows() {
     while read -r fs size used avail use_pct mount; do
         printf "|"
@@ -27,7 +25,7 @@ print_table_separator() {
 
 datetime=$(date)
 
-printf "## System status at %s\n\n" "$datetime":
+printf "\n## System status at %s\n\n" "$datetime":
 
 headings="filesystem size used avail pct mount"
 lines=$(df -h | sed 1d | awk '/^([[:alpha:]]:|\/dev)/{ print $0 }' | read_lines)
@@ -55,6 +53,4 @@ printf "%s\n$%s\n" "$headings" "$lines" | {
     print_table_separator
 
     echo "$lines" | print_table_rows
-
-    printf "\n"
 }

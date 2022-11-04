@@ -8,8 +8,6 @@
 #   Syncthing:https://sleipnir.no-ip.net/syncthing
 #   Gitea:https://sleipnir.no-ip.net/gitea
 
-. ./common.sh
-
 FILENAME="markotd-links"
 FILES="$HOME/.$FILENAME"
 
@@ -41,7 +39,7 @@ print_url() {
 }
 
 if file=$(get_file "$FILES"); then
-    printf "## Useful Links\n\n"
+    printf "\n## Useful Links\n\n"
 
     lines=$(read_lines < "$file")
 
@@ -51,6 +49,4 @@ if file=$(get_file "$FILES"); then
     echo "$lines" | while IFS=: read -r name link; do
         print_url "$name" "$link" "$max_width"
     done
-
-    printf "\n"
 fi

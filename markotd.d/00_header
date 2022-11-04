@@ -18,4 +18,4 @@ else
     printf "%s" "$hostname"
 fi
 
-printf "\n\nThe current user is %s.\n\n" "$user"
+printf "\n\nThe current user is %s.\n" "$user"

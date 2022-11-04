@@ -1,7 +1,5 @@
 #!/bin/sh
 
-. ./common.sh
-
 TERMINAL_WIDTH=$(tput cols)
 if [ "${TERMINAL_WIDTH:-80}" -gt 80 ]; then
     TERMINAL_WIDTH=80
@@ -15,6 +13,6 @@ if [ -n "$DEBUG" ]; then
 fi
 
 if file=$(get_file "$FILES"); then
-    printf "## Notes\n\n"
+    printf "\n## Notes\n\n"
     fold -w "${TERMINAL_WIDTH}" -s "$file"
 fi
