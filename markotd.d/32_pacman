@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if command -v pacman || [ -n "$DEBUG" ]; then
+if command -v pacman > /dev/null || [ -n "$DEBUG" ]; then
     input_file="/var/log/pacman.log"
 
     if [ -n "$DEBUG" ]; then
