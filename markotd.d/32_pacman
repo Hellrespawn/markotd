@@ -1,19 +1,26 @@
 #!/bin/sh
 
+pacman_file="/var/log/pacman.log"
+
 if command -v pacman > /dev/null || [ -n "$DEBUG" ]; then
-    input_file="/var/log/pacman.log"
 
     if [ -n "$DEBUG" ]; then
-        input_file="./pacman.test"
+        pacman_file="./pacman.test"
     fi
 
-    last_update_date=$(grep 'starting full system upgrade' "$input_file" | tail -1 | cut -d " " -f 1)
-    last_update_date="${last_update_date%?}"
-    last_update_date="${last_update_date#?}"
 
-    if [ "$(hours_since "$last_update_date")" -gt "$NOTIFY_AFTER_HOURS" ]; then
-        printf '\n%sLast updated on %s%s\n\n' "$EMPH" "$(date -d "$last_update_date")" "$RESET"
 
-        printf 'It has been %s.\n' "$(pretty_print_time_since_date "$last_update_date")"
+    if [ ! -f "$pacman_file" ]; then
+        printf '\n%sUnable to read %s%s\n\n' "$EMPH" "$pacman_file" "$RESET"
+
+    else
+        last_update_date=$(grep 'starting full system upgrade' "$pacman_file" | tail -1 | cut -d " " -f 1 | sed 's/^.\(.*\).$/\1/')
+
+        if [ "$(hours_since "$last_update_date")" -gt "$NOTIFY_AFTER_HOURS" ]; then
+            printf '\n%sLast updated on %s%s\n\n' "$EMPH" "$(date -d "$last_update_date")" "$RESET"
+
+            pretty_print_time_since_date "$last_update_date"
+        fi
     fi
+
 fi

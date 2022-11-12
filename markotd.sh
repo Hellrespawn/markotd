@@ -70,7 +70,7 @@ pretty_print_time_since_date() {
     [ "$seconds" -gt 0 ] && date_string="$date_string, $seconds seconds"
     date_string=$(echo "$date_string" | sed 's/^, //' | rev | sed 's/ ,/ dna /' | rev)
 
-    echo "$date_string"
+    printf 'It has been %s.\n' "$date_string"
 }
 
 DIRS="$HOME/.$PARTS_FOLDER"

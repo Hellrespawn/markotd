@@ -1,0 +1,19 @@
+#!/bin/sh
+
+apt_file="/var/lib/apt/periodic/update-success-stamp"
+
+if command -v apt > /dev/null; then
+    if [ ! -f "$apt_file" ]; then
+        printf '\n%sUnable to read %s%s\n\n' "$EMPH" "$apt_file" "$RESET"
+    else
+        seconds_since_last_update=$(stat /var/lib/apt/periodic/update-success-stamp -c '%Y')
+
+        last_update_date=$(date -d "@$seconds_since_last_update")
+
+        if [ "$(hours_since "$last_update_date")" -gt "$NOTIFY_AFTER_HOURS" ]; then
+            printf '\n%sLast updated on %s%s\n\n' "$EMPH" "$(date -d "$last_update_date")" "$RESET"
+
+            pretty_print_time_since_date "$last_update_date"
+        fi
+    fi
+fi
