@@ -3,6 +3,7 @@
 PROGRAM="markotd"
 PARTS_FOLDER="markotd.d"
 NOTIFY_AFTER_DAYS=3
+IGNORE_DRIVES="docker wsl"
 
 # Common functions
 

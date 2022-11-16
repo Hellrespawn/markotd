@@ -1,5 +1,33 @@
 #!/bin/sh
 
+contains() {
+    string="$1"
+    substring="$2"
+    if [ "${string#*$substring}" != "$string" ]; then
+        return 0    # $substring is in $string
+    else
+        return 1    # $substring is not in $string
+    fi
+}
+
+ignore_drives() {
+    while read -r line; do
+        ignore=""
+
+        for word in $IGNORE_DRIVES; do
+            if contains "$line" "$word"; then
+                ignore="true"
+                break
+            fi
+        done
+
+        if [ -z "$ignore" ]; then
+            echo "$line"
+        fi
+    done
+}
+
+
 print_table_rows() {
     while read -r fs size used avail use_pct mount; do
         printf "|"
@@ -21,7 +49,7 @@ print_table_separator() {
 printf "\n%s### Drive Usage%s\n\n" "$EMPH" "$RESET"
 
 headings="filesystem size used avail pct mount"
-lines=$(df -h | sed 1d | awk '/^([[:alpha:]]:|\/dev)/{ print $0 }' | read_lines)
+lines=$(df -h | sed 1d | awk '/^([[:alpha:]]:|\/dev)/{ print $0 }' | read_lines | ignore_drives)
 
 # Pipe into subshell. Changes to *_w vars are available in that subshell.
 printf "%s\n$%s\n" "$headings" "$lines" | {
