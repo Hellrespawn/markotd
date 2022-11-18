@@ -37,15 +37,15 @@ get_dir() {
     return 1
 }
 
-# $1: date parseable by `date`
+# $1: seconds since epoch
 seconds_since() {
     date1="$(date +%s)"
-    date2=$(date -d  "$1" +%s)
+    date2=$(date -d  "@$1" +%s)
 
     echo "$((date1 - date2))"
 }
 
-# $1: date parseable by `date`
+# $1: seconds since epoch
 hours_since() {
     seconds="$(seconds_since "$1")"
     hours=$((seconds / 60 / 60))
@@ -53,7 +53,7 @@ hours_since() {
     echo "$hours"
 }
 
-# $1: date parseable by `date`
+# $1: seconds since epoch
 pretty_print_time_since_date() {
     seconds_remaining=$(seconds_since "$1")
 

@@ -3,12 +3,9 @@
 pacman_file="/var/log/pacman.log"
 
 if command -v pacman > /dev/null || [ -n "$DEBUG" ]; then
-
     if [ -n "$DEBUG" ]; then
         pacman_file="./pacman.test"
     fi
-
-
 
     if [ ! -f "$pacman_file" ]; then
         printf '\n%sUnable to read %s%s\n\n' "$EMPH" "$pacman_file" "$RESET"
@@ -16,10 +13,12 @@ if command -v pacman > /dev/null || [ -n "$DEBUG" ]; then
     else
         last_update_date=$(grep 'starting full system upgrade' "$pacman_file" | tail -1 | cut -d " " -f 1 | sed 's/^.\(.*\).$/\1/')
 
-        if [ "$(hours_since "$last_update_date")" -gt "$NOTIFY_AFTER_HOURS" ]; then
-            printf '\n%sLast updated on %s%s\n\n' "$EMPH" "$(date -d "$last_update_date")" "$RESET"
+        seconds_since_last_update=$(date -d "$last_update_date" +%s)
 
-            pretty_print_time_since_date "$last_update_date"
+        if [ "$(hours_since "$seconds_since_last_update")" -gt "$NOTIFY_AFTER_HOURS" ]; then
+            printf '\n%sPacMan last updated on %s%s\n\n' "$EMPH" "$(date -d "@$seconds_since_last_update")" "$RESET"
+
+            pretty_print_time_since_date "$seconds_since_last_update"
         fi
     fi
 
