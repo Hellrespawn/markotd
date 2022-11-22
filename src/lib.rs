@@ -1,8 +1,22 @@
+// #![warn(missing_docs)]
+#![warn(clippy::pedantic)]
+//#![warn(clippy::cargo)]
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(unknown_lints)] // For nightly lints
+#![allow(clippy::uninlined_format_args)]
 #![allow(unstable_name_collisions)]
 pub mod cli;
-// pub(crate) mod error;
+
 pub(crate) mod modules;
 
-// pub(crate) use error::MarkotdError;
+mod date;
+mod drive;
+mod misc;
+mod system;
 
-// pub(crate) type Result<T> = std::result::Result<T, MarkotdError>;
+pub(crate) use date::Date;
+pub(crate) use misc::Misc;
+pub(crate) use system::System;

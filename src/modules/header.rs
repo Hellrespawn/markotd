@@ -1,9 +1,18 @@
-use super::Module;
+use super::{Module, ModuleFactory};
+use crate::System;
 
-pub(crate) fn create() -> Option<Module> {
-    let title = format!("{} on {}", whoami::distro(), whoami::hostname());
+pub(crate) struct Header;
 
-    let body = format!("The current user is {}.", whoami::username());
+impl ModuleFactory for Header {
+    fn create(&self) -> Option<Module> {
+        let title = format!(
+            "{} on {}",
+            System::get_platform_name(),
+            System::get_hostname()
+        );
 
-    Some(Module::new(title, body))
+        let body = format!("The current user is {}.", System::get_username());
+
+        Some(Module::new(title, body, 1))
+    }
 }

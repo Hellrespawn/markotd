@@ -1,20 +1,13 @@
 use itertools::Itertools;
 
-use crate::modules::MODULE_FACTORIES;
+use crate::modules::get_module_factories;
 
-fn wrapper() -> Result<String, Box<dyn std::error::Error>> {
-    let output = MODULE_FACTORIES
+pub fn main() {
+    let output: String = get_module_factories()
         .iter()
-        .filter_map(|f| f().map(|m| m.to_string()))
+        .filter_map(|f| f.create().map(|m| m.to_string()))
         .intersperse("\n".to_owned())
         .collect();
 
-    Ok(output)
-}
-
-pub fn main() {
-    match wrapper() {
-        Ok(output) => println!("{}", output),
-        Err(error) => eprintln!("{}", error),
-    }
+    println!("{}", output);
 }
