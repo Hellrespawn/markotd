@@ -4,7 +4,7 @@ use std::path::Path;
 
 type Link<'a> = (&'a str, &'a str);
 
-pub(crate) fn create_links() -> Option<Module> {
+pub(crate) fn create() -> Option<Module> {
     if let Some(file_contents) = get_file_contents(&"~/markotd-links") {
         let links: Vec<Link> = parse_file_contents(&file_contents);
 
@@ -42,7 +42,7 @@ fn get_max_name_length(links: &[Link]) -> usize {
         .iter()
         .map(|(n, _)| n.len())
         .max()
-        .expect("Did not return max even though links is not empty!")
+        .expect("Passed empty iterator to `get_max_name_length`")
 }
 
 fn parse_file_contents(file_contents: &str) -> Vec<Link> {
@@ -69,13 +69,15 @@ where
 mod test {
     use super::*;
 
+    const TEST_DATA: &str = "
+    # Example:
+    #
+    Syncthing:https://sleipnir.no-ip.net/syncthing
+    Gitea:https://sleipnir.no-ip.net/gitea";
+
     #[test]
     fn test_parse_file_contents() {
-        let input = "
-        # Example:
-        #
-        Syncthing:https://sleipnir.no-ip.net/syncthing
-        Gitea:https://sleipnir.no-ip.net/gitea";
+        let input = TEST_DATA;
 
         let expected = vec![
             ("Syncthing", "https://sleipnir.no-ip.net/syncthing"),
@@ -104,5 +106,50 @@ mod test {
         let input = "This does not have a colon.";
 
         parse_file_contents(input);
+    }
+
+    #[test]
+    fn test_get_max_name_length() {
+        let links = parse_file_contents(TEST_DATA);
+
+        let expected = 9;
+
+        assert_eq!(get_max_name_length(&links), expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_get_max_name_length_empty_vec() {
+        get_max_name_length(&Vec::new());
+    }
+
+    #[test]
+    fn test_format_link() {
+        let links = parse_file_contents(TEST_DATA);
+
+        let max_name_length = get_max_name_length(&links);
+
+        let expected = vec![
+            " - [Syncthing](https://sleipnir.no-ip.net/syncthing)",
+            " -     [Gitea](https://sleipnir.no-ip.net/gitea)",
+        ];
+
+        let actual = links
+            .iter()
+            .map(|(name, link)| format_link(name, link, max_name_length))
+            .collect::<Vec<_>>();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_format_links() {
+        let links = parse_file_contents(TEST_DATA);
+
+        let expected = " - [Syncthing](https://sleipnir.no-ip.net/syncthing)\n -     [Gitea](https://sleipnir.no-ip.net/gitea)";
+
+        let actual = format_links(&links);
+
+        assert_eq!(expected, actual);
     }
 }

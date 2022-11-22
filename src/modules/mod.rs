@@ -2,12 +2,12 @@ use colored::Colorize;
 
 mod header;
 mod links;
+mod system;
 
 type ModuleFactory = fn() -> Option<Module>;
 
-pub(crate) fn get_module_factories() -> &'static [ModuleFactory] {
-    &[header::create_header, links::create_links]
-}
+pub(crate) const MODULE_FACTORIES: &[ModuleFactory] =
+    &[header::create, links::create, system::create];
 
 pub(crate) struct Module {
     title: String,
