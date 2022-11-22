@@ -1,24 +1,26 @@
+use std::process::Command;
+
 use crate::drive::{Filesystem, FilesystemTable};
 
 use super::{Module, ModuleFactory};
-use once_cell::sync::Lazy;
-use regex::Regex;
-use systemstat::{Filesystem as SystemStatFilesystem, Platform, System};
-
-static FS_REGEX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"([[:alpha:]]:|/dev)").expect("Unable to compile regex.")
-});
 
 pub(crate) struct DriveUsage;
 
 impl ModuleFactory for DriveUsage {
     fn create(&self) -> Option<Module> {
-        let filesystems = System::new()
-            .mounts()
-            .expect("Unable to read mounted filesystems.")
-            .into_iter()
-            .filter(DriveUsage::filter_filesystem)
-            .map(Filesystem::from_system_stat_filesystem)
+        let output = String::from_utf8(
+            Command::new("df")
+                .arg("-h")
+                .output()
+                .expect("Unable to read filesystem data.")
+                .stdout,
+        )
+        .expect("Unable to parse disk usage as UTF-8.");
+
+        let filesystems = output
+            .lines()
+            .skip(1)
+            .filter_map(Filesystem::from_df_line)
             .collect::<Vec<_>>();
 
         let table = FilesystemTable::new(filesystems);
@@ -29,9 +31,4 @@ impl ModuleFactory for DriveUsage {
     }
 }
 
-impl DriveUsage {
-    fn filter_filesystem(filesystem: &SystemStatFilesystem) -> bool {
-        FS_REGEX.is_match(&filesystem.fs_mounted_from)
-            && !filesystem.fs_mounted_from.contains("docker")
-    }
-}
+impl DriveUsage {}

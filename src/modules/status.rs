@@ -1,4 +1,4 @@
-use crate::{Date, System};
+use crate::{DateTime, System};
 use chrono::Local;
 
 use super::{Module, ModuleFactory};
@@ -11,7 +11,7 @@ impl ModuleFactory for Status {
 
         let title = format!(
             "System status at {}",
-            Date::format_date(now.naive_local())
+            DateTime::format_date(now.naive_local())
         );
 
         let uptime_string = format!(

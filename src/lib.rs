@@ -12,11 +12,11 @@ pub mod cli;
 
 pub(crate) mod modules;
 
-mod date;
+mod date_time;
 mod drive;
 mod misc;
 mod system;
 
-pub(crate) use date::Date;
+pub(crate) use date_time::DateTime;
 pub(crate) use misc::Misc;
 pub(crate) use system::System;

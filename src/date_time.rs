@@ -2,9 +2,9 @@ use chrono::NaiveDateTime;
 use itertools::Itertools;
 use systemstat::Duration as SystemStatDuration;
 
-pub(crate) struct Date;
+pub(crate) struct DateTime;
 
-impl Date {
+impl DateTime {
     pub(crate) fn format_date(date_time: NaiveDateTime) -> String {
         date_time.format("%c").to_string()
     }

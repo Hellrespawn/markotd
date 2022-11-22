@@ -1,7 +1,10 @@
-use crate::Misc;
-use systemstat::{saturating_sub_bytes, Filesystem as SystemStatFilesystem};
-
 use super::FsMaxLength;
+use once_cell::sync::Lazy;
+use regex::Regex;
+
+static FS_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^([[:alpha:]]:|/dev)").expect("Unable to compile regex.")
+});
 
 pub(crate) struct Filesystem {
     pub(crate) fs: String,
@@ -13,20 +16,27 @@ pub(crate) struct Filesystem {
 }
 
 impl Filesystem {
-    pub(crate) fn from_system_stat_filesystem(
-        filesystem: SystemStatFilesystem,
-    ) -> Self {
-        let used = saturating_sub_bytes(filesystem.total, filesystem.avail);
-        Filesystem {
-            fs: Filesystem::format_fs(filesystem.fs_mounted_from),
-            size: filesystem.total.to_string(),
-            used: used.to_string(),
-            avail: filesystem.avail.to_string(),
-            pct: format!(
-                "{:05.2}%",
-                Misc::pct_from_byte_sizes(used, filesystem.total)
-            ),
-            mount: filesystem.fs_mounted_on,
+    pub(crate) fn from_df_line(line: &str) -> Option<Self> {
+        let mut segments = line
+            .split_whitespace()
+            .map(std::string::ToString::to_string)
+            .collect::<Vec<_>>();
+
+        assert!(segments.len() == 6, "Unexpected df output!");
+
+        let fs = Filesystem {
+            mount: segments.pop().unwrap(),
+            pct: segments.pop().unwrap(),
+            avail: segments.pop().unwrap(),
+            used: segments.pop().unwrap(),
+            size: segments.pop().unwrap(),
+            fs: segments.pop().unwrap(),
+        };
+
+        if Self::filter_filesystem(&fs) {
+            Some(fs)
+        } else {
+            None
         }
     }
 
@@ -52,16 +62,12 @@ impl Filesystem {
         } = max_lengths;
 
         format!(
-            "| {:>fs$} | {:size$} | {:used$} | {:avail$} | {:pct$} | {:mount$} | ",
+            "| {:>fs$} | {:size$} | {:used$} | {:avail$} | {:>pct$} | {:mount$} | ",
             self.fs, self.size, self.used, self.avail, self.pct, self.mount
         )
     }
 
-    fn format_fs(fs: String) -> String {
-        if fs.starts_with(char::is_alphabetic) {
-            fs[..3].to_owned()
-        } else {
-            fs
-        }
+    fn filter_filesystem(filesystem: &Filesystem) -> bool {
+        FS_REGEX.is_match(&filesystem.fs) && !filesystem.fs.contains("docker")
     }
 }
