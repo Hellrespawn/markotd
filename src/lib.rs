@@ -13,10 +13,11 @@ pub mod cli;
 pub(crate) mod modules;
 
 mod date_time;
-mod drive;
+mod fs;
 mod misc;
 mod system;
 
-pub(crate) use date_time::DateTime;
+pub(crate) use date_time::DateTimeTools;
+pub(crate) use fs::FsTools;
 pub(crate) use misc::Misc;
-pub(crate) use system::System;
+pub(crate) use system::SystemTools;

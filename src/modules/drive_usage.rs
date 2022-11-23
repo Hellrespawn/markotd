@@ -1,13 +1,16 @@
-use std::process::Command;
-
-use crate::drive::{Filesystem, FilesystemTable};
-
 use super::{Module, ModuleFactory};
+use crate::fs::{Filesystem, FilesystemTable, FsTools};
+use std::process::Command;
 
 pub(crate) struct DriveUsage;
 
 impl ModuleFactory for DriveUsage {
     fn create(&self) -> Option<Module> {
+        assert!(
+            FsTools::binary_exists_on_path("df"),
+            "Unable to find `df` on path."
+        );
+
         let output = String::from_utf8(
             Command::new("df")
                 .arg("-h")

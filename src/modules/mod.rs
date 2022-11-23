@@ -4,6 +4,7 @@ mod drive_usage;
 mod header;
 mod links;
 mod status;
+mod update_check;
 
 pub(crate) fn get_module_factories() -> Vec<Box<dyn ModuleFactory>> {
     vec![
@@ -11,6 +12,7 @@ pub(crate) fn get_module_factories() -> Vec<Box<dyn ModuleFactory>> {
         Box::new(links::Links),
         Box::new(status::Status),
         Box::new(drive_usage::DriveUsage),
+        Box::new(update_check::UpdateCheck),
     ]
 }
 

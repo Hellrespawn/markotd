@@ -1,11 +1,11 @@
 use chrono::NaiveDateTime;
 use systemstat::{saturating_sub_bytes, Platform, System as SystemStat};
 
-use crate::{DateTime, Misc};
+use crate::{DateTimeTools, Misc};
 
-pub(crate) struct System;
+pub(crate) struct SystemTools;
 
-impl System {
+impl SystemTools {
     pub(crate) fn get_hostname() -> String {
         hostname::get()
             .expect("Unable to read hostname.")
@@ -26,7 +26,7 @@ impl System {
         let uptime =
             SystemStat::new().uptime().expect("Unable to read uptime.");
 
-        DateTime::format_duration(uptime)
+        DateTimeTools::format_duration(uptime.as_secs())
     }
 
     pub(crate) fn get_boot_time() -> String {
@@ -45,7 +45,7 @@ impl System {
         let local: chrono::DateTime<chrono::Local> =
             chrono::DateTime::from(utc);
 
-        DateTime::format_date(local.naive_local())
+        DateTimeTools::format_date(local.naive_local())
     }
 
     pub(crate) fn get_memory_usage() -> String {

@@ -1,17 +1,14 @@
 use chrono::NaiveDateTime;
 use itertools::Itertools;
-use systemstat::Duration as SystemStatDuration;
 
-pub(crate) struct DateTime;
+pub(crate) struct DateTimeTools;
 
-impl DateTime {
+impl DateTimeTools {
     pub(crate) fn format_date(date_time: NaiveDateTime) -> String {
         date_time.format("%c").to_string()
     }
 
-    pub(crate) fn format_duration(duration: SystemStatDuration) -> String {
-        let duration = duration.as_secs();
-
+    pub(crate) fn format_duration(duration: u64) -> String {
         let seconds = duration % 60;
         let minutes = (duration / 60) % 60;
         let hours = (duration / 60 / 60) % 60;
