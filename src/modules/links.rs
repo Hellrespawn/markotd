@@ -9,7 +9,7 @@ pub(crate) struct Links;
 impl ModuleFactory for Links {
     fn create(&self) -> Option<Module> {
         if let Some(file_contents) =
-            Links::get_file_contents(&"~/markotd-links")
+            Links::get_file_contents(&"~/.markotd-links")
         {
             let links: Vec<Link> = Links::parse_file_contents(&file_contents);
 
