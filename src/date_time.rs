@@ -1,9 +1,13 @@
-use chrono::NaiveDateTime;
+use chrono::{Local, NaiveDateTime};
 use itertools::Itertools;
 
-pub(crate) struct DateTimeTools;
+pub(crate) struct DateTime;
 
-impl DateTimeTools {
+impl DateTime {
+    pub(crate) fn now() -> NaiveDateTime {
+        Local::now().naive_local()
+    }
+
     pub(crate) fn format_date(date_time: NaiveDateTime) -> String {
         date_time.format("%c").to_string()
     }

@@ -8,16 +8,15 @@
 #![allow(unknown_lints)] // For nightly lints
 #![allow(clippy::uninlined_format_args)]
 #![allow(unstable_name_collisions)]
+
 pub mod cli;
 
-pub(crate) mod modules;
+pub(crate) mod module;
 
 mod date_time;
 mod fs;
-mod misc;
 mod system;
 
-pub(crate) use date_time::DateTimeTools;
+pub(crate) use date_time::DateTime;
 pub(crate) use fs::FsTools;
-pub(crate) use misc::Misc;
-pub(crate) use system::SystemTools;
+pub(crate) use system::System;

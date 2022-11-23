@@ -7,7 +7,7 @@ pub(crate) use fs_max_length::FsMaxLength;
 pub(crate) use table::FilesystemTable;
 
 use chrono::{DateTime, Local, NaiveDateTime};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub(crate) struct FsTools;
 
@@ -26,5 +26,9 @@ impl FsTools {
         let datetime: DateTime<Local> = mtime.into();
 
         datetime.naive_local()
+    }
+
+    pub(crate) fn home() -> PathBuf {
+        dirs::home_dir().expect("Unable to get home dir.")
     }
 }
