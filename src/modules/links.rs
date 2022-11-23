@@ -8,6 +8,7 @@ pub(crate) struct Links;
 
 impl ModuleFactory for Links {
     fn create(&self) -> Option<Module> {
+        // FIXME Fix reading links
         if let Some(file_contents) =
             Links::get_file_contents(&"~/.markotd-links")
         {
