@@ -9,5 +9,5 @@ pub fn main() {
         .intersperse("\n".to_owned())
         .collect();
 
-    println!("{}", output);
+    print!("{}", output);
 }

@@ -1,6 +1,0 @@
-#!/bin/sh
-
-free -h --si | grep Mem | {
-    read -r _ total used _ _ _ _avail
-    printf "\n%s of %s RAM is in use.\n" "$used" "$total"
-}

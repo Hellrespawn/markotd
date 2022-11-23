@@ -16,3 +16,7 @@ systemstat = "0.2.2"
 thiserror = "1.0.37"
 which = "4.3.0"
 whoami = "1.2.3"
+
+[dev-dependencies]
+assert_fs = "1.0.9"
+filetime = "0.2.18"
