@@ -28,7 +28,7 @@ impl ModuleFactory for Links {
     fn create(&self) -> Option<Module> {
         let path = FsTools::home().join(".markotd-links");
 
-        if let Ok(file_contents) = std::fs::read_to_string(&path) {
+        if let Ok(file_contents) = std::fs::read_to_string(path) {
             let links: Vec<Link> = Self::parse_file_contents(&file_contents);
 
             if links.is_empty() {

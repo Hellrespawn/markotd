@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use chrono::{Duration, Local, NaiveDateTime};
 
-use crate::{DateTime, FsTools};
+use crate::{Config, DateTime, FsTools};
 
 use super::{Module, ModuleFactory};
 
@@ -29,9 +29,10 @@ impl UpdateCheck {
             return None;
         }
 
-        let last_update_time = FsTools::get_last_update_time(apt_cache_file);
+        let last_update_time = FsTools::get_last_update_time(apt_cache_file)
+            .unwrap_or_else(|e| panic!("{}", e));
 
-        Some(UpdateCheck::create_module("APT", last_update_time))
+        UpdateCheck::create_module("APT", last_update_time)
     }
 
     fn last_updated_time_pacman(pacman_log: &str) -> Option<Module> {
@@ -51,7 +52,7 @@ impl UpdateCheck {
             let last_update_time = NaiveDateTime::parse_from_str(string, fmt)
                 .expect("Unable to parse date from pacman log file.");
 
-            Some(UpdateCheck::create_module("pacman", last_update_time))
+            UpdateCheck::create_module("pacman", last_update_time)
         } else {
             None
         }
@@ -63,14 +64,21 @@ impl UpdateCheck {
         std::fs::read_to_string(file).unwrap_or_default()
     }
 
-    fn create_module(name: &str, last_update_time: NaiveDateTime) -> Module {
+    fn create_module(
+        name: &str,
+        last_update_time: NaiveDateTime,
+    ) -> Option<Module> {
         let duration = Local::now().naive_local() - last_update_time;
 
-        Module::new(
-            UpdateCheck::title(name, last_update_time),
-            UpdateCheck::body(duration),
-            2,
-        )
+        if duration < Config::notify_update_after() {
+            None
+        } else {
+            Some(Module::new(
+                UpdateCheck::title(name, last_update_time),
+                UpdateCheck::body(duration),
+                2,
+            ))
+        }
     }
 
     fn title(name: &str, last_update_time: NaiveDateTime) -> String {

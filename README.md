@@ -4,10 +4,8 @@ A Markdown-inspired MOTD.
 
 ## TODO
 
-- TODO? Only print last update date if it's been X days?
 - TODO? "Syntax Highlighting"?
 - TODO? System load?
-- TODO? Print once per day?
 - TODO? Hint at number of ignored drives?
 
 ## MOTD Inspiration
