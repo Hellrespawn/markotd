@@ -10,7 +10,7 @@ impl ModuleFactory for Status {
         let title = format!("System status at {}", DateTime::format_date(now));
 
         let uptime_string = format!(
-            "{} is up for {}, since {}.",
+            "{} is up {}, since {}.",
             System::hostname(),
             System::uptime(),
             System::boot_time()

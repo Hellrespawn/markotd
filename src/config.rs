@@ -18,4 +18,14 @@ impl Config {
             Duration::hours(0)
         }
     }
+
+    pub(crate) fn duration_divisions() -> usize {
+        if let Some(string) = option_env!("DUR_DIV") {
+            string
+                .parse()
+                .expect("Unable to parse number of divisions.")
+        } else {
+            2
+        }
+    }
 }
