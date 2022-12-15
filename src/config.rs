@@ -25,7 +25,7 @@ impl Config {
                 .parse()
                 .expect("Unable to parse number of divisions.")
         } else {
-            2
+            3
         }
     }
 }

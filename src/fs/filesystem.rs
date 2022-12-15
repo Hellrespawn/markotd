@@ -68,6 +68,6 @@ impl Filesystem {
     }
 
     fn filter_filesystem(filesystem: &Filesystem) -> bool {
-        FS_REGEX.is_match(&filesystem.fs) && !filesystem.fs.contains("docker")
+        FS_REGEX.is_match(&filesystem.fs) && !filesystem.mount.contains("docker")
     }
 }
