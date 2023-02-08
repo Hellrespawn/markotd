@@ -1,6 +1,10 @@
 # MarkOTD
 
-A Markdown-inspired MOTD.
+A Markdown-inspired MOTD for home servers..
+
+## Installation
+
+Clone the repository and run `make install` will install to `~/.bin`. Requires Rust.
 
 ## TODO
 
