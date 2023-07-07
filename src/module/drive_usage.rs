@@ -13,6 +13,7 @@ impl ModuleFactory for DriveUsage {
 
         let output = String::from_utf8(
             Command::new("df")
+                .arg("-P")
                 .arg("-h")
                 .output()
                 .expect("Unable to read filesystem data.")

@@ -17,20 +17,28 @@ pub(crate) struct Filesystem {
 
 impl Filesystem {
     pub(crate) fn from_df_line(line: &str) -> Option<Self> {
-        let mut segments = line
+        let segments = line
             .split_whitespace()
             .map(std::string::ToString::to_string)
             .collect::<Vec<_>>();
 
-        assert!(segments.len() == 6, "Unexpected df output!");
+        // df prints mountpoints without quotes, so it can be multiple segments.
+
+        assert!(
+            segments.len() >= 6,
+            "df -Ph did not return the the expected amount of six columns:\n{:#?}",
+            segments
+        );
+
+        let mut iter = segments.into_iter();
 
         let fs = Filesystem {
-            mount: segments.pop().unwrap(),
-            pct: segments.pop().unwrap(),
-            avail: segments.pop().unwrap(),
-            used: segments.pop().unwrap(),
-            size: segments.pop().unwrap(),
-            fs: segments.pop().unwrap(),
+            fs: iter.next().unwrap(),
+            size: iter.next().unwrap(),
+            used: iter.next().unwrap(),
+            avail: iter.next().unwrap(),
+            pct: iter.next().unwrap(),
+            mount: iter.collect::<Vec<_>>().join(" "),
         };
 
         if Self::filter_filesystem(&fs) {
@@ -62,12 +70,13 @@ impl Filesystem {
         } = max_lengths;
 
         format!(
-            "| {:>fs$} | {:size$} | {:used$} | {:avail$} | {:>pct$} | {:mount$} | ",
+            "| {:fs$} | {:>size$} | {:>used$} | {:>avail$} | {:>pct$} | {:mount$} | ",
             self.fs, self.size, self.used, self.avail, self.pct, self.mount
         )
     }
 
     fn filter_filesystem(filesystem: &Filesystem) -> bool {
-        FS_REGEX.is_match(&filesystem.fs) && !filesystem.mount.contains("docker")
+        FS_REGEX.is_match(&filesystem.fs)
+            && !filesystem.mount.contains("docker")
     }
 }
