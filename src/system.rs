@@ -1,5 +1,5 @@
 use crate::DateTime;
-use chrono::{DateTime as ChronoDateTime, Local, NaiveDateTime, Utc};
+use chrono::{DateTime as ChronoDateTime, Local, Utc};
 use systemstat::{
     saturating_sub_bytes, ByteSize, Platform, System as SystemStat,
 };
@@ -37,10 +37,8 @@ impl System {
 
         let seconds = boot_time.unix_timestamp();
 
-        let date_time = NaiveDateTime::from_timestamp_opt(seconds, 0)
-            .expect("Unable to interpret boot time as NaiveDateTime.");
-
-        let utc = ChronoDateTime::<Utc>::from_utc(date_time, Utc);
+        let utc = ChronoDateTime::<Utc>::from_timestamp(seconds, 0)
+            .expect("Unable to parse timestamp");
 
         let local: ChronoDateTime<Local> = chrono::DateTime::from(utc);
 

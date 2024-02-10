@@ -38,6 +38,7 @@ impl FsTools {
     pub(crate) fn touch(path: &Path) {
         OpenOptions::new()
             .create(true)
+            .truncate(false)
             .write(true)
             .open(path)
             .expect("Unable to touch file.");
