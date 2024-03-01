@@ -14,16 +14,13 @@ pub fn main() -> color_eyre::Result<()> {
     let modules = get_module_factories()
         .into_iter()
         .map(|f| f.create())
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
-        .flatten()
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>>>()?;
+
+    let iter = modules.into_iter().flatten();
 
     print!(
         "{}",
-        modules
-            .into_iter()
-            .map(|module| module.to_string())
+        iter.map(|module| module.to_string())
             .intersperse("\n".to_owned())
             .collect::<String>()
     );

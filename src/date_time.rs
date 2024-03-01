@@ -16,11 +16,9 @@ impl DateTime {
     }
 
     pub(crate) fn format_duration(seconds: u64) -> Result<String> {
-        // TODO Test this function
         let num_divisions = Config::duration_divisions()?;
 
         let divisors = [60, 60, 24, 7];
-        // TODO? Add floats to add support for months/years
         let units = ["s", "m", "h", "d", "w"];
 
         assert_eq!(
