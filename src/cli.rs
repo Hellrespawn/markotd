@@ -9,7 +9,9 @@ pub fn main() -> color_eyre::Result<()> {
 
     let env = FsTools::config()?.join("markotd.conf");
 
-    dotenvy::from_path(env)?;
+    if env.is_file() {
+        dotenvy::from_path(env)?;
+    }
 
     let modules = get_module_factories()
         .into_iter()
