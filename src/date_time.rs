@@ -1,4 +1,5 @@
 use chrono::{Local, NaiveDateTime};
+use color_eyre::Result;
 use itertools::Itertools;
 
 use crate::Config;
@@ -14,9 +15,9 @@ impl DateTime {
         date_time.format("%c").to_string()
     }
 
-    pub(crate) fn format_duration(seconds: u64) -> String {
+    pub(crate) fn format_duration(seconds: u64) -> Result<String> {
         // TODO Test this function
-        let num_divisions = Config::duration_divisions();
+        let num_divisions = Config::duration_divisions()?;
 
         let divisors = [60, 60, 24, 7];
         // TODO? Add floats to add support for months/years
@@ -44,14 +45,16 @@ impl DateTime {
         let times =
             (0..=num_divisions).map(handle_division).collect::<Vec<_>>();
 
-        times
+        let formatted = times
             .into_iter()
             .zip(units)
             .rev() // Longest to shortest unit
             .filter(|(t, _)| *t != 0) // Remove times with value 0
             .map(|(t, u)| format!("{}{}", t, u)) // Format times
             .intersperse(" ".to_owned()) // Join Strings
-            .collect()
+            .collect();
+
+        Ok(formatted)
     }
 
     fn handle_division(

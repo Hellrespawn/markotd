@@ -1,5 +1,6 @@
-use super::Filesystem;
 use std::cmp::max;
+
+use super::Filesystem;
 
 #[derive(Default, Copy, Clone)]
 pub(crate) struct FsMaxLength {

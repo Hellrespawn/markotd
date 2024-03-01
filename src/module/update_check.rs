@@ -1,41 +1,41 @@
-use std::path::{Path, PathBuf};
-
+use camino::{Utf8Path, Utf8PathBuf};
 use chrono::{Duration, Local, NaiveDateTime};
-
-use crate::{Config, DateTime, FsTools};
+use color_eyre::Result;
 
 use super::{Module, ModuleFactory};
+use crate::{Config, DateTime, FsTools};
 
 pub(crate) struct UpdateCheck;
 
 impl ModuleFactory for UpdateCheck {
-    fn create(&self) -> Option<Module> {
+    fn create(&self) -> Result<Vec<Module>> {
         if FsTools::binary_exists_on_path("apt") {
-            let apt_cache_file = PathBuf::from("/var/cache/apt/pkgcache.bin");
+            let apt_cache_file =
+                Utf8PathBuf::from("/var/cache/apt/pkgcache.bin");
 
-            UpdateCheck::last_updated_time_apt(&apt_cache_file)
+            Self::last_updated_time_apt(&apt_cache_file)
         } else if FsTools::binary_exists_on_path("pacman") {
-            let file_contents = UpdateCheck::read_pacman_log();
-            UpdateCheck::last_updated_time_pacman(&file_contents)
+            let file_contents = Self::read_pacman_log()?;
+
+            Self::last_updated_time_pacman(&file_contents)
         } else {
-            None
+            Ok(vec![])
         }
     }
 }
 
 impl UpdateCheck {
-    fn last_updated_time_apt(apt_cache_file: &Path) -> Option<Module> {
+    fn last_updated_time_apt(apt_cache_file: &Utf8Path) -> Result<Vec<Module>> {
         if !apt_cache_file.is_file() {
-            return None;
+            return Ok(vec![]);
         }
 
-        let last_update_time = FsTools::get_last_update_time(apt_cache_file)
-            .unwrap_or_else(|e| panic!("{}", e));
+        let last_update_time = FsTools::get_last_update_time(apt_cache_file)?;
 
         UpdateCheck::create_module("APT", last_update_time)
     }
 
-    fn last_updated_time_pacman(pacman_log: &str) -> Option<Module> {
+    fn last_updated_time_pacman(pacman_log: &str) -> Result<Vec<Module>> {
         let line = pacman_log
             .lines()
             .rev()
@@ -50,34 +50,34 @@ impl UpdateCheck {
             let fmt = "%Y-%m-%dT%H:%M:%S%z";
 
             let last_update_time = NaiveDateTime::parse_from_str(string, fmt)
-                .expect("Unable to parse date from pacman log file.");
+                .expect("Unable to parse date from pacman log file. Has the pacman log format changed?");
 
             UpdateCheck::create_module("pacman", last_update_time)
         } else {
-            None
+            Ok(vec![])
         }
     }
 
-    fn read_pacman_log() -> String {
-        let file = PathBuf::from("/var/log/pacman.log");
+    fn read_pacman_log() -> Result<String> {
+        let file = Utf8PathBuf::from("/var/log/pacman.log");
 
-        std::fs::read_to_string(file).unwrap_or_default()
+        Ok(fs_err::read_to_string(file)?)
     }
 
     fn create_module(
         name: &str,
         last_update_time: NaiveDateTime,
-    ) -> Option<Module> {
+    ) -> Result<Vec<Module>> {
         let duration = Local::now().naive_local() - last_update_time;
 
-        if duration < Config::notify_update_after() {
-            None
+        if duration < Config::notify_update_after()? {
+            Ok(vec![])
         } else {
-            Some(Module::new(
+            Ok(vec![Module::new(
                 UpdateCheck::title(name, last_update_time),
-                UpdateCheck::body(duration),
+                UpdateCheck::body(duration)?,
                 2,
-            ))
+            )])
         }
     }
 
@@ -89,23 +89,24 @@ impl UpdateCheck {
         )
     }
 
-    fn body(duration: Duration) -> String {
+    fn body(duration: Duration) -> Result<String> {
         let seconds: u64 = duration
             .num_seconds()
             .try_into()
             .expect("Negative duration since last update!");
 
-        format!("It has been {}.", DateTime::format_duration(seconds))
+        Ok(format!("It has been {}.", DateTime::format_duration(seconds)?))
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use assert_fs::prelude::*;
     use assert_fs::TempDir;
 
-    fn set_file_mtime(path: &Path) {
+    use super::*;
+
+    fn set_file_mtime(path: &Utf8Path) {
         let now = Local::now();
 
         // 10 days ago
@@ -119,7 +120,7 @@ mod test {
     }
 
     #[test]
-    fn test_apt() {
+    fn test_apt() -> Result<()> {
         let test_dir =
             TempDir::new().expect("Unable to create temporary directory.");
 
@@ -128,19 +129,22 @@ mod test {
 
         assert!(test_file.path().is_file());
 
-        set_file_mtime(test_file.path());
+        let path: Utf8PathBuf =
+            Utf8PathBuf::try_from(test_file.path().to_path_buf()).unwrap();
 
-        UpdateCheck::last_updated_time_apt(test_file.path())
-            .expect("Could not create module from test file.");
+        set_file_mtime(&path);
+
+        assert!(!UpdateCheck::last_updated_time_apt(&path)?.is_empty());
+
+        Ok(())
     }
 
     #[test]
-    fn test_pacman() {
+    fn test_pacman() -> Result<()> {
         let test_data = include_str!("../../test/pacman.log");
 
-        let module = UpdateCheck::last_updated_time_pacman(test_data)
-            .expect("Could not create module from test data.");
+        assert!(!UpdateCheck::last_updated_time_pacman(test_data)?.is_empty());
 
-        println!("{}", module);
+        Ok(())
     }
 }

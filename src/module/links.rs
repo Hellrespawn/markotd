@@ -1,6 +1,9 @@
+use color_eyre::eyre::eyre;
+use color_eyre::Result;
+use itertools::Itertools;
+
 use super::{Module, ModuleFactory};
 use crate::fs::FsTools;
-use itertools::Itertools;
 
 #[derive(Debug, PartialEq)]
 struct Link<'a> {
@@ -13,26 +16,26 @@ impl<'a> Link<'a> {
         Self { name, url }
     }
 
-    fn from_string(string: &'a str) -> Self {
+    fn from_string(string: &'a str) -> Result<Self> {
         let (name, url) = string
             .split_once(':')
-            .unwrap_or_else(|| panic!("'{}' is not a valid link!", string));
+            .ok_or(eyre!("'{}' is not a valid link!", string))?;
 
-        Link::new(name, url)
+        Ok(Link::new(name, url))
     }
 }
 
 pub(crate) struct Links;
 
 impl ModuleFactory for Links {
-    fn create(&self) -> Option<Module> {
-        let path = FsTools::home().join(".markotd-links");
+    fn create(&self) -> Result<Vec<Module>> {
+        let path = FsTools::home()?.join(".markotd-links");
 
-        if let Ok(file_contents) = std::fs::read_to_string(path) {
-            let links: Vec<Link> = Self::parse_file_contents(&file_contents);
+        if let Ok(file_contents) = fs_err::read_to_string(path) {
+            let links = Self::parse_file_contents(&file_contents)?;
 
             if links.is_empty() {
-                return None;
+                return Ok(vec![]);
             }
 
             let module = Module::new(
@@ -41,9 +44,9 @@ impl ModuleFactory for Links {
                 2,
             );
 
-            Some(module)
+            Ok(vec![module])
         } else {
-            None
+            Ok(vec![])
         }
     }
 }
@@ -65,21 +68,17 @@ impl Links {
     }
 
     fn get_max_name_length(links: &[Link]) -> usize {
-        links
-            .iter()
-            .map(|link| link.name.len())
-            .max()
-            .expect("Passed empty iterator to `get_max_name_length`")
+        links.iter().map(|link| link.name.len()).max().unwrap_or(0)
     }
 
-    fn parse_file_contents(file_contents: &str) -> Vec<Link> {
+    fn parse_file_contents(file_contents: &str) -> Result<Vec<Link>> {
         file_contents
             .trim()
             .lines()
             .map(str::trim)
             .filter(|l| !l.starts_with('#'))
             .map(Link::from_string)
-            .collect::<Vec<_>>()
+            .collect::<Result<Vec<_>>>()
     }
 }
 
@@ -94,7 +93,7 @@ mod test {
     Gitea:https://sleipnir.no-ip.net/gitea";
 
     #[test]
-    fn test_parse_file_contents() {
+    fn test_parse_file_contents() -> Result<()> {
         let input = TEST_DATA;
 
         let expected = vec![
@@ -102,48 +101,52 @@ mod test {
             Link::new("Gitea", "https://sleipnir.no-ip.net/gitea"),
         ];
 
-        let links = Links::parse_file_contents(input);
+        let links = Links::parse_file_contents(input)?;
 
         assert_eq!(links, expected);
+
+        Ok(())
     }
 
     #[test]
-    fn test_parse_file_contents_empty_file() {
+    fn test_parse_file_contents_empty_file() -> Result<()> {
         let input = "\n#Comment goes here. ";
 
         let expected = Vec::new();
 
-        let links = Links::parse_file_contents(input);
+        let links = Links::parse_file_contents(input)?;
 
         assert_eq!(links, expected);
+
+        Ok(())
     }
 
     #[test]
-    #[should_panic]
     fn test_parse_file_contents_invalid_link() {
         let input = "This does not have a colon.";
 
-        Links::parse_file_contents(input);
+        assert!(Links::parse_file_contents(input).is_err());
     }
 
     #[test]
-    fn test_get_max_name_length() {
-        let links = Links::parse_file_contents(TEST_DATA);
+    fn test_get_max_name_length() -> Result<()> {
+        let links = Links::parse_file_contents(TEST_DATA)?;
 
         let expected = 9;
 
         assert_eq!(Links::get_max_name_length(&links), expected);
+
+        Ok(())
     }
 
     #[test]
-    #[should_panic]
     fn test_get_max_name_length_empty_vec() {
-        Links::get_max_name_length(&Vec::new());
+        assert_eq!(Links::get_max_name_length(&Vec::new()), 0);
     }
 
     #[test]
-    fn test_format_link() {
-        let links = Links::parse_file_contents(TEST_DATA);
+    fn test_format_link() -> Result<()> {
+        let links = Links::parse_file_contents(TEST_DATA)?;
 
         let max_name_length = Links::get_max_name_length(&links);
 
@@ -158,16 +161,20 @@ mod test {
             .collect::<Vec<_>>();
 
         assert_eq!(expected, actual);
+
+        Ok(())
     }
 
     #[test]
-    fn test_format_links() {
-        let links = Links::parse_file_contents(TEST_DATA);
+    fn test_format_links() -> Result<()> {
+        let links = Links::parse_file_contents(TEST_DATA)?;
 
         let expected = "- [Syncthing](https://sleipnir.no-ip.net/syncthing)\n-     [Gitea](https://sleipnir.no-ip.net/gitea)";
 
         let actual = Links::format_links(&links);
 
         assert_eq!(expected, actual);
+
+        Ok(())
     }
 }

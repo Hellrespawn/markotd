@@ -1,5 +1,6 @@
-use super::{Filesystem, FsMaxLength};
 use itertools::Itertools;
+
+use super::{Filesystem, FsMaxLength};
 
 pub(crate) struct FilesystemTable {
     filesystems: Vec<Filesystem>,
@@ -31,10 +32,8 @@ impl std::fmt::Display for FilesystemTable {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let max_lengths = FsMaxLength::from_filesystems(&self.filesystems);
 
-        let mut iter = self
-            .filesystems
-            .iter()
-            .map(|fs| fs.to_aligned_string(max_lengths));
+        let mut iter =
+            self.filesystems.iter().map(|fs| fs.to_aligned_string(max_lengths));
 
         let headings =
             iter.next().expect("Unable to get headings from iterator,");

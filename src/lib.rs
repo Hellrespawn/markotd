@@ -15,14 +15,10 @@ pub(crate) mod module;
 
 mod config;
 mod date_time;
-mod error;
 mod fs;
 mod system;
 
 pub(crate) use config::Config;
 pub(crate) use date_time::DateTime;
-pub(crate) use error::MarkotdError;
 pub(crate) use fs::FsTools;
 pub(crate) use system::System;
-
-pub(crate) type Result<T> = std::result::Result<T, MarkotdError>;

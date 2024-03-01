@@ -1,37 +1,32 @@
-use chrono::Local;
-use filetime::FileTime;
+use color_eyre::Result;
 use itertools::Itertools;
 
 use crate::fs::FsTools;
 use crate::module::get_module_factories;
-use crate::Config;
 
-pub fn main() {
-    let path = FsTools::tmp().join(".markotd");
-    let now = Local::now();
+pub fn main() -> color_eyre::Result<()> {
+    color_eyre::install()?;
 
-    if let Ok(last_run) = FsTools::get_last_update_time(&path) {
-        let duration = now.naive_local() - last_run;
+    let env = FsTools::config()?.join("markotd.conf");
 
-        if duration < Config::show_every_hours() {
-            return;
-        }
-    }
+    dotenvy::from_path(env)?;
+
+    let modules = get_module_factories()
+        .into_iter()
+        .map(|f| f.create())
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>();
 
     print!(
         "{}",
-        get_module_factories()
-            .iter()
-            .filter_map(|f| f.create().map(|m| m.to_string()))
+        modules
+            .into_iter()
+            .map(|module| module.to_string())
             .intersperse("\n".to_owned())
             .collect::<String>()
     );
 
-    FsTools::touch(&path);
-
-    filetime::set_file_mtime(
-        &path,
-        FileTime::from_unix_time(now.timestamp(), 0),
-    )
-    .expect("Unable to update file mtime.");
+    Ok(())
 }
