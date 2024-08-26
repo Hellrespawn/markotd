@@ -9,6 +9,7 @@ static FS_REGEX: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"^([[:alpha:]]:|/dev)").expect("Unable to compile regex.")
 });
 
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) struct Filesystem {
     pub(crate) fs: String,
     pub(crate) size: String,
@@ -31,16 +32,23 @@ impl Filesystem {
             segments));
         }
 
-        let mut iter = segments.into_iter();
+        let pct_index = segments.iter().position(|s| s.ends_with('%'));
 
-        let fs = Filesystem {
-            fs: iter.next().unwrap(),
-            size: iter.next().unwrap(),
-            used: iter.next().unwrap(),
-            avail: iter.next().unwrap(),
-            pct: iter.next().unwrap(),
-            mount: iter.collect::<Vec<_>>().join(" "),
-        };
+        if pct_index.is_none() {
+            return Err(eyre!("Unable to determine percentage column of df."));
+        }
+
+        let pct_index = pct_index.unwrap();
+
+        let pct = segments[pct_index].clone();
+        let avail = segments[pct_index - 1].clone();
+        let used = segments[pct_index - 2].clone();
+        let size = segments[pct_index - 3].clone();
+
+        let fs = segments[0..pct_index - 3].join(" ").clone();
+        let mount = segments[pct_index + 1..segments.len()].join(" ").clone();
+
+        let fs = Filesystem { fs, size, used, avail, pct, mount };
 
         if Self::filter_filesystem(&fs) {
             Ok(Some(fs))
@@ -72,5 +80,91 @@ impl Filesystem {
     fn filter_filesystem(filesystem: &Filesystem) -> bool {
         FS_REGEX.is_match(&filesystem.fs)
             && !filesystem.mount.contains("docker")
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_filesystem_both_spaces() -> Result<()> {
+        let df_line = "C:\\Program Files\\Docker\\Docker\\resources  1.9T  234G  1.6T  13% /Docker/host name/thing";
+
+        let fs = Filesystem::from_df_line(df_line)?;
+
+        let reference = Filesystem {
+            fs: "C:\\Program Files\\Docker\\Docker\\resources".to_owned(),
+            size: "1.9T".to_owned(),
+            used: "234G".to_owned(),
+            avail: "1.6T".to_owned(),
+            pct: "13%".to_owned(),
+            mount: "/Docker/host name/thing".to_owned(),
+        };
+
+        assert_eq!(fs, Some(reference));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_filesystem_fs_space() -> Result<()> {
+        let df_line = "C:\\Program Files\\Docker\\Docker\\resources  1.9T  234G  1.6T  13% /Docker/host";
+
+        let fs = Filesystem::from_df_line(df_line)?;
+
+        let reference = Filesystem {
+            fs: "C:\\Program Files\\Docker\\Docker\\resources".to_owned(),
+            size: "1.9T".to_owned(),
+            used: "234G".to_owned(),
+            avail: "1.6T".to_owned(),
+            pct: "13%".to_owned(),
+            mount: "/Docker/host".to_owned(),
+        };
+
+        assert_eq!(fs, Some(reference));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_filesystem_mount_spaces() -> Result<()> {
+        let df_line = "C:\\Docker\\Docker\\resources  1.9T  234G  1.6T  13% /Docker/host name/thing";
+
+        let fs = Filesystem::from_df_line(df_line)?;
+
+        let reference = Filesystem {
+            fs: "C:\\Docker\\Docker\\resources".to_owned(),
+            size: "1.9T".to_owned(),
+            used: "234G".to_owned(),
+            avail: "1.6T".to_owned(),
+            pct: "13%".to_owned(),
+            mount: "/Docker/host name/thing".to_owned(),
+        };
+
+        assert_eq!(fs, Some(reference));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_filesystem_no_spaces() -> Result<()> {
+        let df_line =
+            "C:\\Docker\\Docker\\resources  1.9T  234G  1.6T  13% /Docker/host";
+
+        let fs = Filesystem::from_df_line(df_line)?;
+
+        let reference = Filesystem {
+            fs: "C:\\Docker\\Docker\\resources".to_owned(),
+            size: "1.9T".to_owned(),
+            used: "234G".to_owned(),
+            avail: "1.6T".to_owned(),
+            pct: "13%".to_owned(),
+            mount: "/Docker/host".to_owned(),
+        };
+
+        assert_eq!(fs, Some(reference));
+
+        Ok(())
     }
 }
