@@ -17,6 +17,7 @@ mod config;
 mod date_time;
 mod fs;
 mod system;
+mod template;
 
 pub(crate) use config::Config;
 pub(crate) use date_time::DateTime;

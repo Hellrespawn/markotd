@@ -1,0 +1,13 @@
+{
+    "distro": "{{ distro }}",
+    "host":   "{{ hostname }}",
+    "user":   "{{ username }}",
+    "uptime": ["{{ uptime.time }}", "{{ uptime.date }}"],
+    "ram": { "used": "{{ ram.used }}", "pct": "{{ ram.pct }}%", "total": "{{ ram.total }}" },
+    "drives": {
+    {%- for drive in drives %}
+      "{{ drive.fs }}": { "size": "{{ drive.size }}", "used": "{{drive.used}}", "avail": "{{ drive.avail }}" }
+    {%- endfor %}
+    },
+    "updated": ["updated.time", "updated.date"]
+}
