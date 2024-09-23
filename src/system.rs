@@ -5,7 +5,7 @@ use systemstat::{
     saturating_sub_bytes, ByteSize, Platform, System as SystemStat,
 };
 
-use crate::DateTime;
+use crate::{template::Ram, DateTime};
 
 pub(crate) struct System;
 
@@ -44,18 +44,19 @@ impl System {
         Ok(DateTime::format_date(local.naive_local()))
     }
 
-    pub(crate) fn memory_usage() -> Result<String> {
+    pub(crate) fn memory_usage() -> Result<Ram> {
         let memory = SystemStat::new().memory()?;
 
         let total = memory.total;
 
         let used = saturating_sub_bytes(memory.total, memory.free);
 
-        Ok(format!(
-            "{} of {} ({:05.2}%) RAM is in use.",
-            used,
-            total,
-            System::pct_from_byte_sizes(used, total)
+        // {:5.2}
+
+        Ok(Ram::new(
+            used.to_string(),
+            format!("{:5.2}", System::pct_from_byte_sizes(used, total)),
+            total.to_string(),
         ))
     }
 

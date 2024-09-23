@@ -1,6 +1,9 @@
 use color_eyre::Result;
 
-use crate::template::{get_environment, MotdContext};
+use crate::{
+    template::{get_environment, MotdContext, Ram, Uptime},
+    DateTime, FsTools, System,
+};
 // use itertools::Itertools;
 
 // use crate::fs::FsTools;
@@ -9,11 +12,30 @@ use crate::template::{get_environment, MotdContext};
 pub fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
 
+    let config = FsTools::config()?.join("markotd.conf");
+
+    if config.is_file() {
+        dotenvy::from_path(config)?;
+    }
+
     let env = get_environment()?;
 
-    let context = MotdContext::test();
-
     let template = env.get_template("md")?;
+
+    let distro = System::platform_name();
+    let hostname = System::hostname()?;
+    let username = System::username();
+
+    let now = DateTime::format_date(DateTime::now());
+
+    let uptime = Uptime::new(System::uptime()?, System::boot_time()?);
+
+    let ram = System::memory_usage()?;
+
+    let drives = FsTools::drive_usage()?;
+
+    let context =
+        MotdContext::new(distro, hostname, username, now, uptime, ram, drives);
 
     let out = template.render(context)?;
 
@@ -22,11 +44,6 @@ pub fn main() -> color_eyre::Result<()> {
     Ok(())
 
 
-    // let env = FsTools::config()?.join("markotd.conf");
-
-    // if env.is_file() {
-    //     dotenvy::from_path(env)?;
-    // }
 
     // let modules = get_module_factories()
     //     .into_iter()

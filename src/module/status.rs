@@ -20,8 +20,8 @@ impl ModuleFactory for Status {
 
         let memory_string = System::memory_usage()?;
 
-        let body = [uptime_string, memory_string].join("\n\n");
+        // let body = [uptime_string, memory_string].join("\n\n");
 
-        Ok(vec![(Module::new(title, body, 2))])
+        Ok(vec![(Module::new(title, String::new(), 2))])
     }
 }

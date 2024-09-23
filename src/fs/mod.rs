@@ -2,6 +2,8 @@ mod filesystem;
 mod fs_max_length;
 mod table;
 
+use std::process::Command;
+
 use camino::{Utf8Path, Utf8PathBuf};
 use chrono::{DateTime, Local, NaiveDateTime};
 use color_eyre::eyre::eyre;
@@ -43,5 +45,24 @@ impl FsTools {
         let utf8_path: Utf8PathBuf = path.try_into()?;
 
         Ok(utf8_path)
+    }
+
+    pub(crate) fn drive_usage() -> Result<Vec<Filesystem>> {
+        assert!(
+            FsTools::binary_exists_on_path("df"),
+            "Unable to find `df` on path."
+        );
+
+        let output = String::from_utf8(
+            Command::new("df").arg("-P").arg("-h").output()?.stdout,
+        )?;
+
+        let filesystems = output
+            .lines()
+            .skip(1)
+            .filter_map(|fs| Filesystem::from_df_line(fs).transpose())
+            .collect::<Result<Vec<_>>>()?;
+
+        Ok(filesystems)
     }
 }

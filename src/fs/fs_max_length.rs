@@ -22,7 +22,7 @@ impl FsMaxLength {
             fs_lengths.used = max(fs_lengths.used, fs.used.len());
             fs_lengths.avail = max(fs_lengths.avail, fs.avail.len());
             fs_lengths.pct = max(fs_lengths.pct, fs.pct.len());
-            fs_lengths.mount = max(fs_lengths.mount, fs.mount.len());
+            fs_lengths.mount = max(fs_lengths.mount, fs.target.len());
         }
 
         fs_lengths

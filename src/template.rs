@@ -1,57 +1,56 @@
-use minijinja::Environment;
 use color_eyre::Result;
+use minijinja::Environment;
 use serde::Serialize;
 
-#[derive(Serialize)]
-struct Uptime<'u> {
-    time: &'u str,
-    date: &'u str,
-}
-#[derive(Serialize)]
+use crate::fs::Filesystem;
 
-struct Ram<'r> {
-    used: &'r str,
-    pct: &'r str,
-    total: &'r str,
-}
 #[derive(Serialize)]
+pub struct Uptime {
+    time: String,
+    date: String,
+}
 
-struct Drive<'d> {
-    fs: &'d str,
-    size: &'d str,
-    used: &'d str,
-    pct: &'d str,
-    avail: &'d str,
-    target: &'d str,
+impl Uptime {
+    pub fn new(time: String, date: String) -> Self {
+        Self { time, date }
+    }
 }
 
 #[derive(Serialize)]
-pub struct MotdContext<'mt> {
-    distro: &'mt str,
-    hostname: &'mt str,
-    username: &'mt str,
-    uptime: &'mt Uptime<'mt>,
-    ram: &'mt Ram<'mt>,
-    drives: &'mt [Drive<'mt>],
+pub struct Ram {
+    used: String,
+    pct: String,
+    total: String,
 }
 
-impl<'mt> MotdContext<'mt> {
-    pub fn test() -> Self {
-        Self {
-            distro: "Distro Linux",
-            hostname: "HostName",
-            username: "UserName",
-            uptime: &Uptime { time: "Uptime.Time", date: "Uptime.Date" },
-            ram: &Ram { used: "Ram.Used", pct: "Ram.Pct", total: "Ram.Total" },
-            drives: &[Drive {
-                fs: "/dev/sda1",
-                size: "1.23T",
-                used: "403G",
-                pct: "12.34",
-                avail: "796G",
-                target: "/boot",
-            }],
-        }
+impl Ram {
+    pub fn new(used: String, pct: String, total: String) -> Self {
+        Self { used, pct, total }
+    }
+}
+
+#[derive(Serialize)]
+pub struct MotdContext {
+    distro: String,
+    hostname: String,
+    username: String,
+    now: String,
+    uptime: Uptime,
+    ram: Ram,
+    drives: Vec<Filesystem>,
+}
+
+impl MotdContext {
+    pub fn new(
+        distro: String,
+        hostname: String,
+        username: String,
+        now: String,
+        uptime: Uptime,
+        ram: Ram,
+        drives: Vec<Filesystem>,
+    ) -> Self {
+        Self { distro, hostname, username, now, uptime, ram, drives }
     }
 }
 
