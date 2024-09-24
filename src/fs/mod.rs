@@ -1,6 +1,5 @@
 mod filesystem;
-mod fs_max_length;
-mod table;
+mod fs_max_width;
 
 use std::process::Command;
 
@@ -9,8 +8,7 @@ use chrono::{DateTime, Local, NaiveDateTime};
 use color_eyre::eyre::eyre;
 use color_eyre::Result;
 pub(crate) use filesystem::Filesystem;
-pub(crate) use fs_max_length::FsMaxLength;
-pub(crate) use table::FilesystemTable;
+pub(crate) use fs_max_width::FsMaxWidth;
 
 pub(crate) struct FsTools;
 

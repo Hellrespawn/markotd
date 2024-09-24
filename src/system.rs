@@ -5,7 +5,8 @@ use systemstat::{
     saturating_sub_bytes, ByteSize, Platform, System as SystemStat,
 };
 
-use crate::{template::Ram, DateTime};
+use crate::template::Ram;
+use crate::DateTime;
 
 pub(crate) struct System;
 
@@ -55,7 +56,7 @@ impl System {
 
         Ok(Ram::new(
             used.to_string(),
-            format!("{:5.2}", System::pct_from_byte_sizes(used, total)),
+            format!("{:2.0}", System::pct_from_byte_sizes(used, total)),
             total.to_string(),
         ))
     }

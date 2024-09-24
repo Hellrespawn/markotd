@@ -1,12 +1,26 @@
 use chrono::{Local, NaiveDateTime};
 use color_eyre::Result;
 use itertools::Itertools;
+use serde::Serialize;
 
 use crate::Config;
 
-pub(crate) struct DateTime;
+const DIVISORS: [u64; 4] = [60, 60, 24, 7];
+const UNITS: [&str; 5] = ["s", "m", "h", "d", "w"];
+
+pub const MAX_DIVISIONS: usize = DIVISORS.len();
+
+#[derive(Serialize)]
+pub struct DateTime {
+    time_since: String,
+    date: String,
+}
 
 impl DateTime {
+    pub fn new(time_since: String, date: String) -> Self {
+        Self { time_since, date }
+    }
+
     pub(crate) fn now() -> NaiveDateTime {
         Local::now().naive_local()
     }
@@ -18,26 +32,21 @@ impl DateTime {
     pub(crate) fn format_duration(seconds: u64) -> Result<String> {
         let num_divisions = Config::duration_divisions()?;
 
-        let divisors = [60, 60, 24, 7];
-        let units = ["s", "m", "h", "d", "w"];
-
         assert_eq!(
-            divisors.len(),
-            units.len() - 1,
+            DIVISORS.len(),
+            UNITS.len() - 1,
             "`units.len()` must be `divisors.len() + 1`"
         );
 
-        let max_divisions = divisors.len();
-
         assert!(
-            num_divisions <= max_divisions,
+            num_divisions <= MAX_DIVISIONS,
             "`divisions` may not be bigger than {}.",
-            max_divisions
+            MAX_DIVISIONS
         );
 
         // Curry function
         let handle_division =
-            |i| Self::handle_division(i, num_divisions, &divisors, seconds);
+            |i| Self::handle_division(i, num_divisions, &DIVISORS, seconds);
 
         #[allow(clippy::needless_collect)]
         let times =
@@ -45,7 +54,7 @@ impl DateTime {
 
         let formatted = times
             .into_iter()
-            .zip(units)
+            .zip(UNITS)
             .rev() // Longest to shortest unit
             .filter(|(t, _)| *t != 0) // Remove times with value 0
             .map(|(t, u)| format!("{}{}", t, u)) // Format times

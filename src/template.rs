@@ -1,20 +1,12 @@
+use color_eyre::eyre::eyre;
 use color_eyre::Result;
+use derive_builder::Builder;
 use minijinja::Environment;
 use serde::Serialize;
 
-use crate::fs::Filesystem;
-
-#[derive(Serialize)]
-pub struct Uptime {
-    time: String,
-    date: String,
-}
-
-impl Uptime {
-    pub fn new(time: String, date: String) -> Self {
-        Self { time, date }
-    }
-}
+use crate::fs::{Filesystem, FsMaxWidth};
+use crate::last_updated::LastUpdated;
+use crate::DateTime;
 
 #[derive(Serialize)]
 pub struct Ram {
@@ -29,38 +21,67 @@ impl Ram {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Builder)]
+#[builder(pattern = "owned")]
 pub struct MotdContext {
     distro: String,
     hostname: String,
     username: String,
     now: String,
-    uptime: Uptime,
+    uptime: DateTime,
+    last_updated: Option<LastUpdated>,
     ram: Ram,
-    drives: Vec<Filesystem>,
+    filesystems: Vec<Filesystem>,
+    fs_max_width: FsMaxWidth,
 }
 
 impl MotdContext {
-    pub fn new(
-        distro: String,
-        hostname: String,
-        username: String,
-        now: String,
-        uptime: Uptime,
-        ram: Ram,
-        drives: Vec<Filesystem>,
-    ) -> Self {
-        Self { distro, hostname, username, now, uptime, ram, drives }
+    pub fn render(&self, template: &str) -> Result<String> {
+        let mut env = Environment::new();
+
+        env.add_filter("repeat", repeat);
+        env.add_filter("ljust", ljust);
+        env.add_filter("rjust", rjust);
+
+        let output = env.render_str(template, self)?;
+
+        Ok(output)
     }
 }
 
-const JSON_TEMPLATE: &str = include_str!("../templates/motd.json");
-const MD_TEMPLATE: &str = include_str!("../templates/motd.md");
+pub struct Template {
+    pub body: &'static str,
+    pub headings_in_width: bool,
+}
 
-pub fn get_environment() -> Result<Environment<'static>> {
-    let mut env = Environment::new();
-    env.add_template("json", JSON_TEMPLATE)?;
-    env.add_template("md", MD_TEMPLATE)?;
+pub fn get_template(name: &str) -> Result<Template> {
+    match name.to_lowercase().as_str() {
+        "json" => {
+            Ok(Template {
+                body: include_str!("../templates/motd.json"),
+                headings_in_width: false,
+            })
+        },
+        "md" => {
+            Ok(Template {
+                body: include_str!("../templates/motd.md"),
+                headings_in_width: true,
+            })
+        },
+        other => Err(eyre!("Unknown template: '{other}'")),
+    }
+}
 
-    Ok(env)
+fn repeat(value: &str, amount: usize) -> String {
+    value.repeat(amount)
+}
+
+fn ljust(value: &str, width: usize) -> String {
+    // let fill_char = fill_char.unwrap_or(" ");
+
+    format!("{value:<width$}")
+}
+
+fn rjust(value: &str, width: usize) -> String {
+    format!("{value:>width$}")
 }

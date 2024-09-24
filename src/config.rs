@@ -1,8 +1,5 @@
-use camino::Utf8PathBuf;
 use chrono::Duration;
-use color_eyre::eyre::eyre;
 use color_eyre::Result;
-use itertools::Itertools;
 
 pub(crate) struct Config;
 
@@ -27,28 +24,36 @@ impl Config {
         }
     }
 
-    pub(crate) fn watched_files() -> Result<Vec<Utf8PathBuf>> {
-        if let Ok(string) = std::env::var("WATCH_FILES") {
-            let paths =
-                string.split(';').map(Utf8PathBuf::from).collect::<Vec<_>>();
+    // pub(crate) fn watched_files() -> Result<Vec<Utf8PathBuf>> {
+    //     if let Ok(string) = std::env::var("WATCH_FILES") {
+    //         let paths =
+    //             string.split(';').map(Utf8PathBuf::from).collect::<Vec<_>>();
 
-            let (existing, not_existing): (Vec<_>, Vec<_>) =
-                paths.into_iter().partition(|p| p.is_file());
+    //         let (existing, not_existing): (Vec<_>, Vec<_>) =
+    //             paths.into_iter().partition(|p| p.is_file());
 
-            if !not_existing.is_empty() {
-                return Err(eyre!(
-                    "Cannot read the following files:\n{}",
-                    not_existing
-                        .into_iter()
-                        .map(|p| p.to_string())
-                        .intersperse("\n".to_owned())
-                        .collect::<String>()
-                ));
-            }
+    //         if !not_existing.is_empty() {
+    //             return Err(eyre!(
+    //                 "Cannot read the following files:\n{}",
+    //                 not_existing
+    //                     .into_iter()
+    //                     .map(|p| p.to_string())
+    //                     .intersperse("\n".to_owned())
+    //                     .collect::<String>()
+    //             ));
+    //         }
 
-            Ok(existing)
-        } else {
-            Ok(vec![])
-        }
+    //         Ok(existing)
+    //     } else {
+    //         Ok(vec![])
+    //     }
+    // }
+
+    pub(crate) fn df_whitelist_regex() -> Option<String> {
+        std::env::var("DF_WHITELIST").ok()
+    }
+
+    pub(crate) fn df_blacklist_regex() -> Option<String> {
+        std::env::var("DF_BLACKLIST").ok()
     }
 }

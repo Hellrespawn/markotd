@@ -8,8 +8,9 @@ edition = "2021"
 [dependencies]
 camino = "1.1"
 chrono = "0.4"
+clap = { version = "4.5.18", features = ["derive"] }
 color-eyre = "0.6"
-colored = "2.1"
+derive_builder = "0.20.1"
 dirs = "5.0"
 dotenvy = "0.15"
 filetime = "0.2"

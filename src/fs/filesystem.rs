@@ -4,10 +4,30 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Serialize;
 
-use super::FsMaxLength;
+use crate::Config;
 
-static FS_REGEX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^([[:alpha:]]:|/dev)").expect("Unable to compile regex.")
+static FS_WHITELIST_REGEX: Lazy<Vec<Regex>> = Lazy::new(|| {
+    let mut regexes = vec![
+        Regex::new(r"^[[:alpha:]]:").expect("Unable to compile regex."),
+        Regex::new("^/dev").expect("Unable to compile regex."),
+    ];
+
+    if let Some(regex) = Config::df_whitelist_regex() {
+        regexes.push(Regex::new(&regex).expect("Unable to compile regex."));
+    }
+
+    regexes
+});
+
+static FS_BLACKLIST_REGEX: Lazy<Vec<Regex>> = Lazy::new(|| {
+    let mut regexes =
+        vec![Regex::new(r"(?i)docker").expect("Unable to compile regex.")];
+
+    if let Some(regex) = Config::df_blacklist_regex() {
+        regexes.push(Regex::new(&regex).expect("Unable to compile regex."));
+    }
+
+    regexes
 });
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
@@ -46,8 +66,14 @@ impl Filesystem {
         let used = segments[pct_index - 2].clone();
         let size = segments[pct_index - 3].clone();
 
-        let fs = segments[0..pct_index - 3].join(" ").clone();
-        let target = segments[pct_index + 1..segments.len()].join(" ").clone();
+        let mut fs = segments[0..pct_index - 3].join(" ").clone();
+        let mut target =
+            segments[pct_index + 1..segments.len()].join(" ").clone();
+
+        // if escape {
+        fs = Self::escape(&fs);
+        target = Self::escape(&target);
+        // }
 
         let fs = Filesystem { fs, size, used, avail, pct, target };
 
@@ -58,29 +84,31 @@ impl Filesystem {
         }
     }
 
-    pub(crate) fn headings() -> Self {
-        Filesystem {
-            fs: "filesystem".to_owned(),
-            size: "size".to_owned(),
-            used: "used".to_owned(),
-            avail: "avail".to_owned(),
-            pct: "pct".to_owned(),
-            target: "target".to_owned(),
-        }
-    }
+    // pub(crate) fn headings() -> Self {
+    //     Filesystem {
+    //         fs: "filesystem".to_owned(),
+    //         size: "size".to_owned(),
+    //         used: "used".to_owned(),
+    //         avail: "avail".to_owned(),
+    //         pct: "pct".to_owned(),
+    //         target: "target".to_owned(),
+    //     }
+    // }
 
-    pub(crate) fn to_aligned_string(&self, max_lengths: FsMaxLength) -> String {
-        let FsMaxLength { fs, mount, size, used, avail, pct } = max_lengths;
-
-        format!(
-            "| {:fs$} | {:>size$} | {:>used$} | {:>avail$} | {:>pct$} | {:mount$} | ",
-            self.fs, self.size, self.used, self.avail, self.pct, self.target
-        )
+    fn escape(string: &str) -> String {
+        string.replace('\\', "\\\\")
     }
 
     fn filter_filesystem(filesystem: &Filesystem) -> bool {
-        FS_REGEX.is_match(&filesystem.fs)
-            && !filesystem.target.contains("docker")
+        let is_whitelisted = FS_WHITELIST_REGEX.iter().any(|re| {
+            re.is_match(&filesystem.fs) || re.is_match(&filesystem.target)
+        });
+
+        let is_blacklisted = FS_BLACKLIST_REGEX.iter().any(|re| {
+            re.is_match(&filesystem.fs) || re.is_match(&filesystem.target)
+        });
+
+        is_whitelisted && !is_blacklisted
     }
 }
 
