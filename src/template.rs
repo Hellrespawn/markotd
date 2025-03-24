@@ -1,12 +1,12 @@
-use color_eyre::eyre::eyre;
 use color_eyre::Result;
+use color_eyre::eyre::eyre;
 use derive_builder::Builder;
 use minijinja::Environment;
 use serde::Serialize;
 
+use crate::DateTime;
 use crate::fs::{Filesystem, FsMaxWidth};
 use crate::last_updated::LastUpdated;
-use crate::DateTime;
 
 #[derive(Serialize)]
 pub struct Ram {

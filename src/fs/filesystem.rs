@@ -1,5 +1,5 @@
-use color_eyre::eyre::eyre;
 use color_eyre::Result;
+use color_eyre::eyre::eyre;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Serialize;
@@ -49,8 +49,10 @@ impl Filesystem {
 
         // df prints mountpoints without quotes, so it can be multiple segments.
         if segments.len() < 6 {
-            return Err(eyre!("df -Ph did not return the the expected amount of six columns:\n{:#?}",
-            segments));
+            return Err(eyre!(
+                "df -Ph did not return the the expected amount of six columns:\n{:#?}",
+                segments
+            ));
         }
 
         let pct_index = segments.iter().position(|s| s.ends_with('%'));
@@ -77,11 +79,7 @@ impl Filesystem {
 
         let fs = Filesystem { fs, size, used, avail, pct, target };
 
-        if Self::filter_filesystem(&fs) {
-            Ok(Some(fs))
-        } else {
-            Ok(None)
-        }
+        if Self::filter_filesystem(&fs) { Ok(Some(fs)) } else { Ok(None) }
     }
 
     // pub(crate) fn headings() -> Self {

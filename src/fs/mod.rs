@@ -5,8 +5,8 @@ use std::process::Command;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use chrono::{DateTime, Local, NaiveDateTime};
-use color_eyre::eyre::eyre;
 use color_eyre::Result;
+use color_eyre::eyre::eyre;
 pub(crate) use filesystem::Filesystem;
 pub(crate) use fs_max_width::FsMaxWidth;
 

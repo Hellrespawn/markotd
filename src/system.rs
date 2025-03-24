@@ -1,12 +1,12 @@
 use chrono::{DateTime as ChronoDateTime, Local, Utc};
-use color_eyre::eyre::eyre;
 use color_eyre::Result;
+use color_eyre::eyre::eyre;
 use systemstat::{
-    saturating_sub_bytes, ByteSize, Platform, System as SystemStat,
+    ByteSize, Platform, System as SystemStat, saturating_sub_bytes,
 };
 
-use crate::template::Ram;
 use crate::DateTime;
+use crate::template::Ram;
 
 pub(crate) struct System;
 

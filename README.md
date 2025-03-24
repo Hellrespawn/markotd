@@ -34,7 +34,7 @@ The context available to templates can be found in `src/template.rs::MotdContext
 ## TODO
 
 - TODO Support color in templates
-- TODO Use `humantime` to format durations
+- TODO? Use `humantime` to format durations?
 - TODO? "Syntax Highlighting"?
 - TODO? System load?
 - TODO? Hint at number of ignored drives?

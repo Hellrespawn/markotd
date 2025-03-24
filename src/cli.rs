@@ -1,7 +1,7 @@
 use crate::args::Args;
 use crate::fs::FsMaxWidth;
 use crate::last_updated::get_last_update_time;
-use crate::template::{get_template, MotdContextBuilder};
+use crate::template::{MotdContextBuilder, get_template};
 use crate::{DateTime, FsTools, System};
 
 pub fn main() -> color_eyre::Result<()> {
