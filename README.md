@@ -12,7 +12,7 @@ Clone the repository and run `make install` will install to `~/.bin`. Requires R
 Usage: markotd [TEMPLATE]
 
 Arguments:
-  [TEMPLATE]  [possible values: json, md, toml] [default: json]
+  [TEMPLATE]  [possible values: json, md, toml] [default: md]
 
 Options:
   -h, --help     Print help
