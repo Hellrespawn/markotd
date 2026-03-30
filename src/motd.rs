@@ -132,4 +132,31 @@ mod test {
 
         Ok(())
     }
+
+    #[test]
+    fn test_render_context_toml_renders_union_of_existing_template_data()
+    -> Result<()> {
+        let context = sample_context(Some(LastUpdated::new(
+            "4d".to_owned(),
+            "Thu Sep 19 14:08:11 2024".to_owned(),
+            "pacman".to_owned(),
+        )));
+
+        let rendered = render_context(&context, "toml")?;
+
+        assert!(rendered.contains("\u{1b}[94muser_at_host\u{1b}[0m = "));
+        assert!(
+            rendered.contains(
+                "\u{1b}[92m\u{1b}[1m\"stef@testbox\"\u{1b}[0m\u{1b}[0m"
+            )
+        );
+        assert!(rendered.contains("\u{1b}[94mnow\u{1b}[0m = "));
+        assert!(rendered.contains("\u{1b}[94muptime\u{1b}[0m = { "));
+        assert!(rendered.contains("\u{1b}[94mdrives\u{1b}[0m = ["));
+        assert!(rendered.contains("\u{1b}[90mpct\u{1b}[0m = "));
+        assert!(rendered.contains("\u{1b}[94mlast_updated\u{1b}[0m = { "));
+        assert!(rendered.contains("\u{1b}[36mapp\u{1b}[0m = "));
+
+        Ok(())
+    }
 }

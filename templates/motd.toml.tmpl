@@ -1,0 +1,15 @@
+{{ "user_at_host" | color("bright_blue") }} = {{ (username ~ "@" ~ hostname) | json_string | bold | color("bright_green") }}
+{{ "username" | color("bright_blue") }} = {{ username | json_string | bold | color("bright_green") }}
+{{ "hostname" | color("bright_blue") }} = {{ hostname | json_string | bold | color("bright_cyan") }}
+{{ "distro" | color("bright_blue") }} = {{ distro | json_string | bold | color("bright_cyan") }}
+{{ "now" | color("bright_blue") }} = {{ now | json_string | dim }}
+{{ "uptime" | color("bright_blue") }} = { {{ "time_since" | color("cyan") }} = {{ uptime.time_since | json_string | bold | color("bright_green") }}, {{ "date" | color("cyan") }} = {{ uptime.date | json_string | dim }} }
+{{ "ram" | color("bright_blue") }} = { {{ "used" | color("cyan") }} = {{ ram.used | json_string | bold | color("bright_green") }}, {{ "pct" | color("cyan") }} = {{ (ram.pct ~ "%") | json_string | bold | color("yellow") }}, {{ "total" | color("cyan") }} = {{ ram.total | json_string | color("bright_cyan") }} }
+{{ "drives" | color("bright_blue") }} = [
+{%- for drive in filesystems %}
+  { {{ "filesystem" | color("cyan") }} = {{ drive.fs | json_string | color("bright_cyan") | ljust(fs_max_width.fs + 2) }}, {{ "size" | color("gray") }} = {{ drive.size | json_string | rjust(fs_max_width.size + 2) }}, {{ "used" | color("gray") }} = {{ drive.used | json_string | rjust(fs_max_width.used + 2) }}, {{ "avail" | color("gray") }} = {{ drive.avail | json_string | rjust(fs_max_width.avail + 2) }}, {{ "pct" | color("gray") }} = {{ drive.pct | json_string | bold | color("yellow") | rjust(fs_max_width.pct + 2) }}, {{ "target" | color("gray") }} = {{ drive.target | json_string | ljust(fs_max_width.target + 2) }} }{% if not loop.last %},{% endif %}
+{%- endfor %}
+]
+{%- if last_updated %}
+{{ "last_updated" | color("bright_blue") }} = { {{ "app" | color("cyan") }} = {{ last_updated.app | json_string | color("bright_cyan") }}, {{ "time_since" | color("cyan") }} = {{ last_updated.time_since | json_string | bold | color("bright_yellow") }}, {{ "date" | color("cyan") }} = {{ last_updated.date | json_string | dim }} }
+{%- endif %}

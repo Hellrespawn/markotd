@@ -24,6 +24,12 @@ pub fn get_template(name: &str) -> Result<Template> {
                 headings_in_width: true,
             })
         },
+        "toml" => {
+            Ok(Template {
+                body: include_str!("../templates/motd.toml.tmpl"),
+                headings_in_width: false,
+            })
+        },
         other => Err(eyre!("Unknown template: '{other}'")),
     }
 }
