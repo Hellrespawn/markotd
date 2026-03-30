@@ -76,7 +76,8 @@ impl FilesystemFilter {
             whitelist.push(Regex::new(regex)?);
         }
 
-        let mut blacklist = vec![Regex::new(r"(?i)docker")?];
+        let mut blacklist =
+            vec![Regex::new(r"(?i)docker")?, Regex::new(r"^none$")?];
 
         if let Some(regex) = config.df_blacklist_regex() {
             blacklist.push(Regex::new(regex)?);
@@ -181,6 +182,21 @@ mod test {
             avail: "1.6T".to_owned(),
             pct: "13%".to_owned(),
             target: "/Docker/host".to_owned(),
+        };
+
+        assert!(!filesystem.filter_filesystem(&filter));
+    }
+
+    #[test]
+    fn test_filesystem_none_filtered_by_default() {
+        let filter = FilesystemFilter::from_config(&Config::default()).unwrap();
+        let filesystem = Filesystem {
+            fs: "none".to_owned(),
+            size: "3.9G".to_owned(),
+            used: "0".to_owned(),
+            avail: "3.9G".to_owned(),
+            pct: "0%".to_owned(),
+            target: "/dev/tty".to_owned(),
         };
 
         assert!(!filesystem.filter_filesystem(&filter));
