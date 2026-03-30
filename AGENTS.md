@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-`src/` contains the Rust crate. `main.rs` is the thin binary entry point; core behavior lives in modules such as `cli.rs`, `config.rs`, `system.rs`, `template.rs`, and `fs/` for filesystem parsing helpers. `templates/` holds the built-in MOTD templates (`motd.json`, `motd.md`) compiled into the binary with `include_str!`. `test/` stores fixture data such as `pacman.log`. Build output goes to `target/` and should not be committed.
+`src/` contains the Rust crate. `main.rs` is the thin binary entry point; core behavior lives in modules such as `cli.rs`, `config.rs`, `system.rs`, `template.rs`, and `fs/` for filesystem parsing helpers. `templates/` holds the built-in MOTD templates (`motd.json.tmpl`, `motd.md.tmpl`) compiled into the binary with `include_str!`. `test/` stores fixture data such as `pacman.log`. Build output goes to `target/` and should not be committed.
 
 ## Build, Test, and Development Commands
 Use Cargo directly during development:

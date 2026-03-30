@@ -14,13 +14,13 @@ pub fn get_template(name: &str) -> Result<Template> {
     match name.to_lowercase().as_str() {
         "json" => {
             Ok(Template {
-                body: include_str!("../templates/motd.json"),
+                body: include_str!("../templates/motd.json.tmpl"),
                 headings_in_width: false,
             })
         },
         "md" => {
             Ok(Template {
-                body: include_str!("../templates/motd.md"),
+                body: include_str!("../templates/motd.md.tmpl"),
                 headings_in_width: true,
             })
         },
