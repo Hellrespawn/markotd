@@ -1,22 +1,22 @@
-# {{distro}} on {{hostname}}
+# {{ distro | bold | color("bright_cyan") }} on {{ hostname | bold }}
 
-The current user is {{username}}.
+The current user is {{ username | bold | color("bright_green") }}.
 
-## System status at Mon Sep 23 14:08:11 2024
+## {{ "System status" | color("bright_blue") }} at {{ now | dim }}
 
-{{hostname}} is up {{uptime.time_since}}, since {{uptime.date}}.
+{{ hostname | color("cyan") }} is up {{ uptime.time_since | bold | color("bright_green") }}, since {{ uptime.date | dim }}.
 
-{{ram.used}} MB of {{ram.total}} GB ({{ram.pct}}%) RAM is in use.
+{{ ram.used | bold | color("bright_green") }} MB of {{ ram.total | color("cyan") }} GB ({{ ram.pct | bold | color("yellow") }}%) RAM is in use.
 
-### Drive Usage
+### {{ "Drive Usage" | color("bright_blue") }}
 
-| {{ "filesystem" | ljust(fs_max_width.fs) }} | {{ "size" | rjust(fs_max_width.size) }} | {{ "used" | rjust(fs_max_width.used) }} | {{ "avail" | rjust(fs_max_width.avail) }} | {{ "pct" | rjust(fs_max_width.pct) }} | {{ "target" | ljust(fs_max_width.target) }} |
+| {{ "filesystem" | ljust(fs_max_width.fs) | bold | color("bright_white") }} | {{ "size" | rjust(fs_max_width.size) | bold | color("bright_white") }} | {{ "used" | rjust(fs_max_width.used) | bold | color("bright_white") }} | {{ "avail" | rjust(fs_max_width.avail) | bold | color("bright_white") }} | {{ "pct" | rjust(fs_max_width.pct) | bold | color("bright_white") }} | {{ "target" | ljust(fs_max_width.target) | bold | color("bright_white") }} |
 | {{ "-" | repeat(fs_max_width.fs) }} | {{ "-" | repeat(fs_max_width.size) }} | {{ "-" | repeat(fs_max_width.used) }} | {{ "-" | repeat(fs_max_width.avail) }} | {{ "-" | repeat(fs_max_width.pct) }} | {{ "-" | repeat(fs_max_width.target) }} |
 {%- for drive in filesystems %}
-| {{drive.fs | ljust(fs_max_width.fs) }} | {{drive.size | rjust(fs_max_width.size) }} | {{drive.used | rjust(fs_max_width.used) }} | {{drive.avail | rjust(fs_max_width.avail) }} | {{drive.pct | rjust(fs_max_width.pct) }} | {{drive.target | ljust(fs_max_width.target) }} |
+| {{ drive.fs | ljust(fs_max_width.fs) | color("cyan") }} | {{ drive.size | rjust(fs_max_width.size) }} | {{ drive.used | rjust(fs_max_width.used) }} | {{ drive.avail | rjust(fs_max_width.avail) }} | {{ drive.pct | rjust(fs_max_width.pct) | bold | color("yellow") }} | {{ drive.target | ljust(fs_max_width.target) }} |
 {%- endfor %}
 {% if last_updated %}
-## {{ last_updated.app }} last updated on {{last_updated.date }}
+## {{ last_updated.app | color("bright_blue") }} last updated on {{ last_updated.date | dim }}
 
-It has been {{ last_updated.time_since }}.
+It has been {{ last_updated.time_since | bold | color("bright_yellow") }}.
 {% endif %}

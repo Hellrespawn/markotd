@@ -102,14 +102,17 @@ mod test {
 
         let rendered = render_context(&context, "json")?;
 
-        assert!(rendered.contains("\"user@host\": \"stef@testbox\""));
-        assert!(rendered.contains("\"distro\":    \"Arch Linux\""));
+        assert!(rendered.contains("\u{1b}[94m\"user@host\":\u{1b}[0m"));
         assert!(
             rendered.contains(
-                "\"updated\": [\"4d\", \"Thu Sep 19 14:08:11 2024\"]"
+                "\u{1b}[92m\u{1b}[1m\"stef@testbox\"\u{1b}[0m\u{1b}[0m"
             )
         );
-        assert!(rendered.contains("\"/dev/sda1\":"));
+        assert!(rendered.contains("\u{1b}[96m\u{1b}[1m\"Arch Linux\""));
+        assert!(rendered.contains(
+            "\u{1b}[94m\"updated\":\u{1b}[0m [\u{1b}[93m\u{1b}[1m\"4d\""
+        ));
+        assert!(rendered.contains("\u{1b}[36m\"/dev/sda1\":"));
 
         Ok(())
     }
@@ -120,7 +123,11 @@ mod test {
 
         let rendered = render_context(&context, "md")?;
 
-        assert!(rendered.contains("# Arch Linux on testbox"));
+        assert!(
+            rendered
+                .contains("# \u{1b}[96m\u{1b}[1mArch Linux\u{1b}[0m\u{1b}[0m")
+        );
+        assert!(rendered.contains("## \u{1b}[94mSystem status\u{1b}[0m at "));
         assert!(!rendered.contains("last updated on"));
 
         Ok(())

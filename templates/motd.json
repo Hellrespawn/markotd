@@ -1,15 +1,15 @@
 {
-  "user@host": "{{ username }}@{{ hostname }}",
-  "distro":    "{{ distro }}",
-  "uptime":   ["{{ uptime.time_since }}", "{{ uptime.date }}"],
-  "ram":     { "used": "{{ ram.used }}", "pct": "{{ ram.pct }}%", "total": "{{ ram.total }}" },
-  "drives": {
+  {{ '"user@host":' | color("bright_blue") }} {{ (username ~ "@" ~ hostname) | json_string | bold | color("bright_green") }},
+  {{ '"distro":' | color("bright_blue") }}    {{ distro | json_string | bold | color("bright_cyan") }},
+  {{ '"uptime":' | color("bright_blue") }}   [{{ uptime.time_since | json_string | bold | color("bright_green") }}, {{ uptime.date | json_string | dim }}],
+  {{ '"ram":' | color("bright_blue") }}     { {{ '"used":' | color("cyan") }} {{ ram.used | json_string | bold | color("bright_green") }}, {{ '"pct":' | color("cyan") }} {{ (ram.pct ~ "%") | json_string | bold | color("yellow") }}, {{ '"total":' | color("cyan") }} {{ ram.total | json_string | color("bright_cyan") }} },
+  {{ '"drives":' | color("bright_blue") }} {
   {%- for drive in filesystems %}
-    {{ ((drive.fs | json_string) ~ ":") | ljust(fs_max_width.fs + 5) }} { "size": {{ (drive.size | json_string) | rjust(fs_max_width.size + 2) }}, "used": {{ (drive.used | json_string) | rjust(fs_max_width.used + 2) }}, "avail": {{ (drive.avail | json_string) | rjust(fs_max_width.avail + 2) }}, "target": {{ (drive.target | json_string) | ljust(fs_max_width.target + 2) }}}
+    {{ ((drive.fs | json_string) ~ ":") | ljust(fs_max_width.fs + 5) | color("cyan") }} { {{ '"size":' | color("gray") }} {{ (drive.size | json_string) | rjust(fs_max_width.size + 2) }}, {{ '"used":' | color("gray") }} {{ (drive.used | json_string) | rjust(fs_max_width.used + 2) }}, {{ '"avail":' | color("gray") }} {{ (drive.avail | json_string) | rjust(fs_max_width.avail + 2) }}, {{ '"target":' | color("gray") }} {{ (drive.target | json_string) | ljust(fs_max_width.target + 2) }}}
     {%- if not loop.last %},{% endif %}
   {%- endfor %}
   }{% if last_updated %},{% endif %}
   {%- if last_updated %}
-  "updated": ["{{ last_updated.time_since }}", "{{ last_updated.date }}"]
+  {{ '"updated":' | color("bright_blue") }} [{{ last_updated.time_since | json_string | bold | color("bright_yellow") }}, {{ last_updated.date | json_string | dim }}]
   {%- endif %}
 }
