@@ -59,6 +59,9 @@ impl FsTools {
             .lines()
             .skip(1)
             .filter_map(|fs| Filesystem::from_df_line(fs).transpose())
+            .filter(|fs| {
+                fs.as_ref().is_ok_and(filesystem::Filesystem::filter_filesystem)
+            })
             .collect::<Result<Vec<_>>>()?;
 
         Ok(filesystems)

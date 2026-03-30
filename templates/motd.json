@@ -5,10 +5,10 @@
   "ram":     { "used": "{{ ram.used }}", "pct": "{{ ram.pct }}%", "total": "{{ ram.total }}" },
   "drives": {
   {%- for drive in filesystems %}
-    {{ ("\"" ~ drive.fs ~ "\":") | ljust(fs_max_width.fs + 3) }} { "size": {{ ("\"" ~ drive.size ~ "\"") | rjust(fs_max_width.size + 2) }}, "used": {{ ("\"" ~ drive.used ~ "\"") | rjust(fs_max_width.used + 2) }}, "avail": {{ ("\"" ~ drive.avail ~ "\"") | rjust(fs_max_width.avail + 2) }}, "target": {{ ("\"" ~ drive.target ~ "\"") | ljust(fs_max_width.target + 2) }}}
+    {{ ((drive.fs | json_string) ~ ":") | ljust(fs_max_width.fs + 5) }} { "size": {{ (drive.size | json_string) | rjust(fs_max_width.size + 2) }}, "used": {{ (drive.used | json_string) | rjust(fs_max_width.used + 2) }}, "avail": {{ (drive.avail | json_string) | rjust(fs_max_width.avail + 2) }}, "target": {{ (drive.target | json_string) | ljust(fs_max_width.target + 2) }}}
     {%- if not loop.last %},{% endif %}
   {%- endfor %}
-  },
+  }{% if last_updated %},{% endif %}
   {%- if last_updated %}
   "updated": ["{{ last_updated.time_since }}", "{{ last_updated.date }}"]
   {%- endif %}

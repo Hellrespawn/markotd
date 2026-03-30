@@ -64,23 +64,17 @@ impl Filesystem {
 
         let pct_index = pct_index.unwrap();
 
-        let pct = segments[pct_index].trim_end_matches('%').to_owned();
+        let pct = segments[pct_index].clone();
         let avail = segments[pct_index - 1].clone();
         let used = segments[pct_index - 2].clone();
         let size = segments[pct_index - 3].clone();
 
-        let mut fs = segments[0..pct_index - 3].join(" ").clone();
-        let mut target =
-            segments[pct_index + 1..segments.len()].join(" ").clone();
-
-        // if escape {
-        fs = Self::escape(&fs);
-        target = Self::escape(&target);
-        // }
+        let fs = segments[0..pct_index - 3].join(" ").clone();
+        let target = segments[pct_index + 1..segments.len()].join(" ").clone();
 
         let fs = Filesystem { fs, size, used, avail, pct, target };
 
-        if Self::filter_filesystem(&fs) { Ok(Some(fs)) } else { Ok(None) }
+        Ok(Some(fs))
     }
 
     // pub(crate) fn headings() -> Self {
@@ -94,11 +88,7 @@ impl Filesystem {
     //     }
     // }
 
-    fn escape(string: &str) -> String {
-        string.replace('\\', "\\\\")
-    }
-
-    fn filter_filesystem(filesystem: &Filesystem) -> bool {
+    pub(super) fn filter_filesystem(filesystem: &Filesystem) -> bool {
         let is_whitelisted = FS_WHITELIST_REGEX.iter().any(|re| {
             re.is_match(&filesystem.fs) || re.is_match(&filesystem.target)
         });
@@ -194,5 +184,19 @@ mod test {
         assert_eq!(fs, Some(reference));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_filesystem_docker_filtered_by_default() {
+        let filesystem = Filesystem {
+            fs: "C:\\Docker\\Docker\\resources".to_owned(),
+            size: "1.9T".to_owned(),
+            used: "234G".to_owned(),
+            avail: "1.6T".to_owned(),
+            pct: "13%".to_owned(),
+            target: "/Docker/host".to_owned(),
+        };
+
+        assert!(!Filesystem::filter_filesystem(&filesystem));
     }
 }

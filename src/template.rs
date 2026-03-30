@@ -1,8 +1,9 @@
 use color_eyre::Result;
 use color_eyre::eyre::eyre;
 use derive_builder::Builder;
-use minijinja::Environment;
+use minijinja::{Environment, Error, ErrorKind};
 use serde::Serialize;
+use serde_json::to_string;
 
 use crate::DateTime;
 use crate::fs::{Filesystem, FsMaxWidth};
@@ -42,6 +43,7 @@ impl MotdContext {
         env.add_filter("repeat", repeat);
         env.add_filter("ljust", ljust);
         env.add_filter("rjust", rjust);
+        env.add_filter("json_string", json_string);
 
         let output = env.render_str(template, self)?;
 
@@ -56,18 +58,14 @@ pub struct Template {
 
 pub fn get_template(name: &str) -> Result<Template> {
     match name.to_lowercase().as_str() {
-        "json" => {
-            Ok(Template {
-                body: include_str!("../templates/motd.json"),
-                headings_in_width: false,
-            })
-        },
-        "md" => {
-            Ok(Template {
-                body: include_str!("../templates/motd.md"),
-                headings_in_width: true,
-            })
-        },
+        "json" => Ok(Template {
+            body: include_str!("../templates/motd.json"),
+            headings_in_width: false,
+        }),
+        "md" => Ok(Template {
+            body: include_str!("../templates/motd.md"),
+            headings_in_width: true,
+        }),
         other => Err(eyre!("Unknown template: '{other}'")),
     }
 }
@@ -84,4 +82,9 @@ fn ljust(value: &str, width: usize) -> String {
 
 fn rjust(value: &str, width: usize) -> String {
     format!("{value:>width$}")
+}
+
+fn json_string(value: &str) -> Result<String, minijinja::Error> {
+    to_string(value)
+        .map_err(|err| Error::new(ErrorKind::BadSerialization, err.to_string()))
 }
