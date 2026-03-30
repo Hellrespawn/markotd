@@ -6,9 +6,3 @@ pub struct Args {
     #[arg(default_value = "json")]
     pub template: String,
 }
-
-impl Args {
-    pub fn parse() -> Self {
-        <Self as Parser>::parse()
-    }
-}

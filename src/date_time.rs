@@ -1,26 +1,17 @@
 use chrono::{Local, NaiveDateTime};
 use color_eyre::Result;
+use color_eyre::eyre::eyre;
 use itertools::Itertools;
-use serde::Serialize;
 
 use crate::Config;
+use crate::model::DateTime;
 
 const DIVISORS: [u64; 4] = [60, 60, 24, 7];
 const UNITS: [&str; 5] = ["s", "m", "h", "d", "w"];
 
 pub const MAX_DIVISIONS: usize = DIVISORS.len();
 
-#[derive(Serialize)]
-pub struct DateTime {
-    time_since: String,
-    date: String,
-}
-
 impl DateTime {
-    pub fn new(time_since: String, date: String) -> Self {
-        Self { time_since, date }
-    }
-
     pub(crate) fn now() -> NaiveDateTime {
         Local::now().naive_local()
     }
@@ -29,22 +20,25 @@ impl DateTime {
         date_time.format("%c").to_string()
     }
 
-    pub(crate) fn format_duration(seconds: u64) -> Result<String> {
-        let num_divisions = Config::duration_divisions()?;
+    pub(crate) fn format_duration(
+        seconds: u64,
+        config: &Config,
+    ) -> Result<String> {
+        let num_divisions = config.duration_divisions();
 
-        assert_eq!(
+        debug_assert_eq!(
             DIVISORS.len(),
             UNITS.len() - 1,
             "`units.len()` must be `divisors.len() + 1`"
         );
 
-        assert!(
-            num_divisions <= MAX_DIVISIONS,
-            "`divisions` may not be bigger than {}.",
-            MAX_DIVISIONS
-        );
+        if num_divisions > MAX_DIVISIONS {
+            return Err(eyre!(
+                "`divisions` may not be bigger than {}.",
+                MAX_DIVISIONS
+            ));
+        }
 
-        // Curry function
         let handle_division =
             |i| Self::handle_division(i, num_divisions, &DIVISORS, seconds);
 
@@ -55,10 +49,10 @@ impl DateTime {
         let formatted = times
             .into_iter()
             .zip(UNITS)
-            .rev() // Longest to shortest unit
-            .filter(|(t, _)| *t != 0) // Remove times with value 0
-            .map(|(t, u)| format!("{}{}", t, u)) // Format times
-            .intersperse(" ".to_owned()) // Join Strings
+            .rev()
+            .filter(|(t, _)| *t != 0)
+            .map(|(t, u)| format!("{}{}", t, u))
+            .intersperse(" ".to_owned())
             .collect();
 
         Ok(formatted)

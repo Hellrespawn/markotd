@@ -1,59 +1,174 @@
 use chrono::Duration;
 use color_eyre::Result;
+use color_eyre::eyre::{WrapErr, eyre};
+use regex::Regex;
 
-pub(crate) struct Config;
+use crate::date_time::MAX_DIVISIONS;
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Config {
+    notify_update_after: Duration,
+    duration_divisions: usize,
+    df_whitelist_regex: Option<String>,
+    df_blacklist_regex: Option<String>,
+}
 
 impl Config {
-    pub(crate) fn notify_update_after() -> Result<Duration> {
-        if let Ok(string) = std::env::var("NOTIFY_UPDATE_HOURS") {
-            let hours: i64 = string.parse()?;
+    pub(crate) fn load() -> Result<Self> {
+        let notify_update_after = if let Ok(string) =
+            std::env::var("NOTIFY_UPDATE_HOURS")
+        {
+            let hours: i64 =
+                string.parse().wrap_err("Invalid NOTIFY_UPDATE_HOURS value")?;
 
-            Ok(Duration::hours(hours))
+            Duration::hours(hours)
         } else {
-            Ok(Duration::days(3))
+            Duration::days(3)
+        };
+
+        let duration_divisions = if let Ok(string) = std::env::var("DUR_DIV") {
+            string.parse().wrap_err("Invalid DUR_DIV value")?
+        } else {
+            3
+        };
+
+        if duration_divisions > MAX_DIVISIONS {
+            return Err(eyre!(
+                "Invalid DUR_DIV value: {} exceeds maximum of {}",
+                duration_divisions,
+                MAX_DIVISIONS
+            ));
+        }
+
+        let df_whitelist_regex = std::env::var("DF_WHITELIST").ok();
+        let df_blacklist_regex = std::env::var("DF_BLACKLIST").ok();
+
+        validate_regex("DF_WHITELIST", df_whitelist_regex.as_deref())?;
+        validate_regex("DF_BLACKLIST", df_blacklist_regex.as_deref())?;
+
+        Ok(Self {
+            notify_update_after,
+            duration_divisions,
+            df_whitelist_regex,
+            df_blacklist_regex,
+        })
+    }
+
+    pub(crate) fn notify_update_after(&self) -> Duration {
+        self.notify_update_after
+    }
+
+    pub(crate) fn duration_divisions(&self) -> usize {
+        self.duration_divisions
+    }
+
+    pub(crate) fn df_whitelist_regex(&self) -> Option<&str> {
+        self.df_whitelist_regex.as_deref()
+    }
+
+    pub(crate) fn df_blacklist_regex(&self) -> Option<&str> {
+        self.df_blacklist_regex.as_deref()
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            notify_update_after: Duration::days(3),
+            duration_divisions: 3,
+            df_whitelist_regex: None,
+            df_blacklist_regex: None,
+        }
+    }
+}
+
+fn validate_regex(name: &str, regex: Option<&str>) -> Result<()> {
+    if let Some(regex) = regex {
+        Regex::new(regex).wrap_err_with(|| format!("Invalid {name} regex"))?;
+    }
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use std::sync::{LazyLock, Mutex};
+
+    use super::*;
+
+    static ENV_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
+
+    fn clear_config_env() {
+        unsafe {
+            std::env::remove_var("DUR_DIV");
+            std::env::remove_var("NOTIFY_UPDATE_HOURS");
+            std::env::remove_var("DF_WHITELIST");
+            std::env::remove_var("DF_BLACKLIST");
         }
     }
 
-    pub(crate) fn duration_divisions() -> Result<usize> {
-        if let Ok(string) = std::env::var("DUR_DIV") {
-            let divisions: usize = string.parse()?;
+    #[test]
+    fn test_load_uses_defaults() -> Result<()> {
+        let _guard = ENV_LOCK.lock().unwrap();
+        clear_config_env();
 
-            Ok(divisions)
-        } else {
-            Ok(3)
+        let config = Config::load()?;
+
+        assert_eq!(config, Config::default());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_load_reads_valid_env_vars() -> Result<()> {
+        let _guard = ENV_LOCK.lock().unwrap();
+        clear_config_env();
+        unsafe {
+            std::env::set_var("NOTIFY_UPDATE_HOURS", "12");
+            std::env::set_var("DUR_DIV", "2");
+            std::env::set_var("DF_WHITELIST", "^/srv");
+            std::env::set_var("DF_BLACKLIST", "tmpfs");
         }
+
+        let config = Config::load()?;
+
+        assert_eq!(config.notify_update_after(), Duration::hours(12));
+        assert_eq!(config.duration_divisions(), 2);
+        assert_eq!(config.df_whitelist_regex(), Some("^/srv"));
+        assert_eq!(config.df_blacklist_regex(), Some("tmpfs"));
+
+        clear_config_env();
+
+        Ok(())
     }
 
-    // pub(crate) fn watched_files() -> Result<Vec<Utf8PathBuf>> {
-    //     if let Ok(string) = std::env::var("WATCH_FILES") {
-    //         let paths =
-    //             string.split(';').map(Utf8PathBuf::from).collect::<Vec<_>>();
+    #[test]
+    fn test_load_rejects_invalid_duration_divisions() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        clear_config_env();
+        unsafe {
+            std::env::set_var("DUR_DIV", "99");
+        }
 
-    //         let (existing, not_existing): (Vec<_>, Vec<_>) =
-    //             paths.into_iter().partition(|p| p.is_file());
+        let err = Config::load().unwrap_err();
 
-    //         if !not_existing.is_empty() {
-    //             return Err(eyre!(
-    //                 "Cannot read the following files:\n{}",
-    //                 not_existing
-    //                     .into_iter()
-    //                     .map(|p| p.to_string())
-    //                     .intersperse("\n".to_owned())
-    //                     .collect::<String>()
-    //             ));
-    //         }
+        assert!(err.to_string().contains("Invalid DUR_DIV value"));
 
-    //         Ok(existing)
-    //     } else {
-    //         Ok(vec![])
-    //     }
-    // }
-
-    pub(crate) fn df_whitelist_regex() -> Option<String> {
-        std::env::var("DF_WHITELIST").ok()
+        clear_config_env();
     }
 
-    pub(crate) fn df_blacklist_regex() -> Option<String> {
-        std::env::var("DF_BLACKLIST").ok()
+    #[test]
+    fn test_load_rejects_invalid_whitelist_regex() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        clear_config_env();
+        unsafe {
+            std::env::set_var("DF_WHITELIST", "[");
+        }
+
+        let err = Config::load().unwrap_err();
+
+        assert!(err.to_string().contains("Invalid DF_WHITELIST regex"));
+
+        clear_config_env();
     }
 }

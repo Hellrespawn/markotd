@@ -1,6 +1,4 @@
-// #![warn(missing_docs)]
 #![warn(clippy::pedantic)]
-//#![warn(clippy::cargo)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
@@ -16,10 +14,16 @@ mod config;
 mod date_time;
 mod fs;
 mod last_updated;
+mod model;
+mod motd;
 mod system;
 mod template;
 
 pub(crate) use config::Config;
-pub(crate) use date_time::DateTime;
-pub(crate) use fs::FsTools;
+pub(crate) use fs::{
+    binary_exists_on_path, config_dir, drive_usage, modified_time,
+};
+pub(crate) use model::{
+    DateTime, LastUpdated, MotdContext, MotdContextBuilder, Ram,
+};
 pub(crate) use system::System;

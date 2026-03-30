@@ -5,8 +5,7 @@ use systemstat::{
     ByteSize, Platform, System as SystemStat, saturating_sub_bytes,
 };
 
-use crate::DateTime;
-use crate::template::Ram;
+use crate::{Config, DateTime, Ram};
 
 pub(crate) struct System;
 
@@ -26,10 +25,10 @@ impl System {
             .to_string())
     }
 
-    pub(crate) fn uptime() -> Result<String> {
+    pub(crate) fn uptime(config: &Config) -> Result<String> {
         let uptime = SystemStat::new().uptime()?;
 
-        DateTime::format_duration(uptime.as_secs())
+        DateTime::format_duration(uptime.as_secs(), config)
     }
 
     pub(crate) fn boot_time() -> Result<String> {
@@ -49,10 +48,7 @@ impl System {
         let memory = SystemStat::new().memory()?;
 
         let total = memory.total;
-
         let used = saturating_sub_bytes(memory.total, memory.free);
-
-        // {:5.2}
 
         Ok(Ram::new(
             used.to_string(),

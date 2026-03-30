@@ -1,35 +1,9 @@
-use std::sync::LazyLock;
-
 use color_eyre::Result;
 use color_eyre::eyre::eyre;
 use regex::Regex;
 use serde::Serialize;
 
 use crate::Config;
-
-static FS_WHITELIST_REGEX: LazyLock<Vec<Regex>> = LazyLock::new(|| {
-    let mut regexes = vec![
-        Regex::new(r"^[[:alpha:]]:").expect("Unable to compile regex."),
-        Regex::new("^/dev").expect("Unable to compile regex."),
-    ];
-
-    if let Some(regex) = Config::df_whitelist_regex() {
-        regexes.push(Regex::new(&regex).expect("Unable to compile regex."));
-    }
-
-    regexes
-});
-
-static FS_BLACKLIST_REGEX: LazyLock<Vec<Regex>> = LazyLock::new(|| {
-    let mut regexes =
-        vec![Regex::new(r"(?i)docker").expect("Unable to compile regex.")];
-
-    if let Some(regex) = Config::df_blacklist_regex() {
-        regexes.push(Regex::new(&regex).expect("Unable to compile regex."));
-    }
-
-    regexes
-});
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub(crate) struct Filesystem {
@@ -42,13 +16,12 @@ pub(crate) struct Filesystem {
 }
 
 impl Filesystem {
-    pub(crate) fn from_df_line(line: &str) -> Result<Option<Self>> {
+    pub(crate) fn from_df_line(line: &str) -> Result<Self> {
         let segments = line
             .split_whitespace()
             .map(std::string::ToString::to_string)
             .collect::<Vec<_>>();
 
-        // df prints mountpoints without quotes, so it can be multiple segments.
         if segments.len() < 6 {
             return Err(eyre!(
                 "df -Ph did not return the the expected amount of six columns:\n{:#?}",
@@ -56,13 +29,10 @@ impl Filesystem {
             ));
         }
 
-        let pct_index = segments.iter().position(|s| s.ends_with('%'));
-
-        if pct_index.is_none() {
-            return Err(eyre!("Unable to determine percentage column of df."));
-        }
-
-        let pct_index = pct_index.unwrap();
+        let pct_index =
+            segments.iter().position(|s| s.ends_with('%')).ok_or_else(
+                || eyre!("Unable to determine percentage column of df."),
+            )?;
 
         let pct = segments[pct_index].clone();
         let avail = segments[pct_index - 1].clone();
@@ -74,30 +44,45 @@ impl Filesystem {
 
         let fs = Filesystem { fs, size, used, avail, pct, target };
 
-        Ok(Some(fs))
+        Ok(fs)
     }
 
-    // pub(crate) fn headings() -> Self {
-    //     Filesystem {
-    //         fs: "filesystem".to_owned(),
-    //         size: "size".to_owned(),
-    //         used: "used".to_owned(),
-    //         avail: "avail".to_owned(),
-    //         pct: "pct".to_owned(),
-    //         target: "target".to_owned(),
-    //     }
-    // }
+    pub(super) fn filter_filesystem(&self, filter: &FilesystemFilter) -> bool {
+        let is_whitelisted = filter
+            .whitelist
+            .iter()
+            .any(|re| re.is_match(&self.fs) || re.is_match(&self.target));
 
-    pub(super) fn filter_filesystem(filesystem: &Filesystem) -> bool {
-        let is_whitelisted = FS_WHITELIST_REGEX.iter().any(|re| {
-            re.is_match(&filesystem.fs) || re.is_match(&filesystem.target)
-        });
-
-        let is_blacklisted = FS_BLACKLIST_REGEX.iter().any(|re| {
-            re.is_match(&filesystem.fs) || re.is_match(&filesystem.target)
-        });
+        let is_blacklisted = filter
+            .blacklist
+            .iter()
+            .any(|re| re.is_match(&self.fs) || re.is_match(&self.target));
 
         is_whitelisted && !is_blacklisted
+    }
+}
+
+pub(super) struct FilesystemFilter {
+    whitelist: Vec<Regex>,
+    blacklist: Vec<Regex>,
+}
+
+impl FilesystemFilter {
+    pub(super) fn from_config(config: &Config) -> Result<Self> {
+        let mut whitelist =
+            vec![Regex::new(r"^[[:alpha:]]:")?, Regex::new("^/dev")?];
+
+        if let Some(regex) = config.df_whitelist_regex() {
+            whitelist.push(Regex::new(regex)?);
+        }
+
+        let mut blacklist = vec![Regex::new(r"(?i)docker")?];
+
+        if let Some(regex) = config.df_blacklist_regex() {
+            blacklist.push(Regex::new(regex)?);
+        }
+
+        Ok(Self { whitelist, blacklist })
     }
 }
 
@@ -120,7 +105,7 @@ mod test {
             target: "/Docker/host name/thing".to_owned(),
         };
 
-        assert_eq!(fs, Some(reference));
+        assert_eq!(fs, reference);
 
         Ok(())
     }
@@ -140,7 +125,7 @@ mod test {
             target: "/Docker/host".to_owned(),
         };
 
-        assert_eq!(fs, Some(reference));
+        assert_eq!(fs, reference);
 
         Ok(())
     }
@@ -160,7 +145,7 @@ mod test {
             target: "/Docker/host name/thing".to_owned(),
         };
 
-        assert_eq!(fs, Some(reference));
+        assert_eq!(fs, reference);
 
         Ok(())
     }
@@ -181,13 +166,14 @@ mod test {
             target: "/Docker/host".to_owned(),
         };
 
-        assert_eq!(fs, Some(reference));
+        assert_eq!(fs, reference);
 
         Ok(())
     }
 
     #[test]
     fn test_filesystem_docker_filtered_by_default() {
+        let filter = FilesystemFilter::from_config(&Config::default()).unwrap();
         let filesystem = Filesystem {
             fs: "C:\\Docker\\Docker\\resources".to_owned(),
             size: "1.9T".to_owned(),
@@ -197,6 +183,6 @@ mod test {
             target: "/Docker/host".to_owned(),
         };
 
-        assert!(!Filesystem::filter_filesystem(&filesystem));
+        assert!(!filesystem.filter_filesystem(&filter));
     }
 }

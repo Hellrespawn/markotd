@@ -9,13 +9,20 @@ Use Cargo directly during development:
 - `cargo build` builds the crate in debug mode.
 - `cargo run -- json` runs the CLI locally with the `json` template.
 - `cargo test` runs unit tests.
-- `cargo fmt` applies repository formatting.
+- `cargo +nightly fmt` applies repository formatting. The checked-in
+  `rustfmt.toml` uses nightly-only options, so plain `cargo fmt` emits
+  warnings and does not fully honor repository formatting settings.
 - `cargo clippy --all-targets --all-features` checks for lint issues before a PR.
 
 For local installation, `make install` builds `target/release/markotd` and copies it to `~/.bin/markotd`. `make clean` removes build artifacts.
 
 ## Coding Style & Naming Conventions
-This project uses Rust 2024 edition. Follow `rustfmt.toml`: 80-column width, grouped/reordered imports, and field init shorthand where possible. Use `snake_case` for functions, modules, and files; use `UpperCamelCase` for structs and enums. Keep `main.rs` minimal and place reusable logic in `lib.rs` modules. Prefer explicit error propagation with `color-eyre::Result`.
+This project uses Rust 2024 edition. Follow `rustfmt.toml` with the
+nightly formatter: 80-column width, grouped/reordered imports, and field
+init shorthand where possible. Use `snake_case` for functions, modules,
+and files; use `UpperCamelCase` for structs and enums. Keep `main.rs`
+minimal and place reusable logic in `lib.rs` modules. Prefer explicit
+error propagation with `color-eyre::Result`.
 
 ## Testing Guidelines
 Unit tests currently live next to implementation code, for example in `src/fs/filesystem.rs`. Add focused tests beside the module you change unless a separate fixture in `test/` makes more sense. Name tests by behavior, such as `test_filesystem_mount_spaces`. Run `cargo test` before opening a PR and note any platform-specific failures clearly.

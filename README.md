@@ -29,7 +29,7 @@ The application is configured via environment variables:
 
 - `DF_WHITELIST` and `DF_BLACKLIST` - Regular expressions which determine which drives from the output of `df` are shown. By default it only shows drive that start with "/dev" and "[A-Z]:". Blacklist takes priority over whitelist.
 
-The context available to templates can be found in `src/template.rs::MotdContext`.
+The context available to templates can be found in `src/model.rs::MotdContext`.
 
 ## TODO
 
