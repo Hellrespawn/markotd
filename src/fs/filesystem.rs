@@ -1,12 +1,13 @@
+use std::sync::LazyLock;
+
 use color_eyre::Result;
 use color_eyre::eyre::eyre;
-use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Serialize;
 
 use crate::Config;
 
-static FS_WHITELIST_REGEX: Lazy<Vec<Regex>> = Lazy::new(|| {
+static FS_WHITELIST_REGEX: LazyLock<Vec<Regex>> = LazyLock::new(|| {
     let mut regexes = vec![
         Regex::new(r"^[[:alpha:]]:").expect("Unable to compile regex."),
         Regex::new("^/dev").expect("Unable to compile regex."),
@@ -19,7 +20,7 @@ static FS_WHITELIST_REGEX: Lazy<Vec<Regex>> = Lazy::new(|| {
     regexes
 });
 
-static FS_BLACKLIST_REGEX: Lazy<Vec<Regex>> = Lazy::new(|| {
+static FS_BLACKLIST_REGEX: LazyLock<Vec<Regex>> = LazyLock::new(|| {
     let mut regexes =
         vec![Regex::new(r"(?i)docker").expect("Unable to compile regex.")];
 

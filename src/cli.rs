@@ -17,9 +17,9 @@ pub fn main() -> color_eyre::Result<()> {
 
     let template = get_template(&args.template)?;
 
-    let distro = System::platform_name();
+    let distro = System::platform_name()?;
     let hostname = System::hostname()?;
-    let username = System::username();
+    let username = System::username()?;
 
     let now = DateTime::format_date(DateTime::now());
 

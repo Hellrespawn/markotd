@@ -79,10 +79,10 @@ impl DateTime {
                 time /= div;
             }
 
-            if i != divisions {
-                if let Some(modu) = divisors.get(i) {
-                    time %= modu;
-                }
+            if i != divisions
+                && let Some(modu) = divisors.get(i)
+            {
+                time %= modu;
             }
         }
 

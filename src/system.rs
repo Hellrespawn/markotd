@@ -11,12 +11,12 @@ use crate::template::Ram;
 pub(crate) struct System;
 
 impl System {
-    pub(crate) fn username() -> String {
-        whoami::username()
+    pub(crate) fn username() -> Result<String> {
+        Ok(whoami::username()?)
     }
 
-    pub(crate) fn platform_name() -> String {
-        whoami::distro()
+    pub(crate) fn platform_name() -> Result<String> {
+        Ok(whoami::distro()?)
     }
 
     pub(crate) fn hostname() -> Result<String> {
